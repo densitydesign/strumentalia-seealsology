@@ -171,6 +171,21 @@ angular.module('wikiDiverApp')
             var blob = new Blob([csvtxt], { type: "data:text/csv;charset=utf-8" });
             saveAs(blob, "data.tsv")
         };
+
+        $scope.downloadGEXF = function() {
+            var gexfDoc = gexf.create();
+
+            $scope.nodes.forEach(function(n) {
+                gexfDoc.addNode({id: n, label: n});
+            });
+
+            $scope.edges.forEach(function(e) {
+                gexfDoc.addEdge({source: e.source, target: e.target});
+            });
+
+            var blob = new Blob([gexfDoc.serialize()], { type: "data:application/xml+gexf;charset=utf-8" });
+            saveAs(blob, "data.gexf")
+        };
     });
 
 
