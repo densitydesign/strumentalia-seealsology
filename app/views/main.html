@@ -1,0 +1,47 @@
+<script type="text/ng-template" id="categoryTree">
+    {{entity.name}}
+    <ul ng-if="entity.sons">
+        <li ng-repeat="entity in entity.sons" ng-include="'categoryTree'">
+
+        </li>
+    </ul>
+</script>
+
+<div class="interface col-md-12">
+<div class="lbl">Insert one or more URL, one per line</div>
+<textarea   rows="10" cols="100" ng-model="$parent.query"></textarea>
+
+<div class="lbl">Select depth</div>
+<input type="number"  name="input" ng-model="$parent.depth" min="1" max="99" required>
+
+<button type="button" class="btn btn-info" ng-click="update()">Go</button>
+<button type="button" ng-show="download" class="btn btn-info" ng-click="downloadJSON()">Download JSON</button>
+<button type="button" ng-show="download" class="btn btn-info" ng-click="downloadCSV()">Download CSV</button>
+
+<alert ng-show="alert" type="danger">Please, insert a valid list of english wikipedia URLs</alert>
+</div>
+<div ng-show="res.length"class="results col-md-7">
+<h4>Results</h4>
+<ul>
+    <li ng-repeat="entity in res track by $index" ng-include="'categoryTree'"></li>
+</ul>
+</div>
+
+<div ng-show ="notFound.length || stopped.length" class="col-md-5">
+<div class="notFound">
+<div class="lbl"><b>Not found (See also section missing, or bad page name)</b></div>
+<ul>
+    <li ng-repeat="page in notFound track by $index">{{page}}</li>
+</ul>
+</div>
+<br/>
+
+<div class="stopped">
+<div class="lbl"><b>Stopped from stopWord list</b></div>
+<ul>
+    <li ng-repeat="page in stopped">{{page}}</li>
+</ul>
+</div>
+</div>
+
+
