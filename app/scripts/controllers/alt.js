@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('wikiDiverApp')
-    .controller('AltCtrl', function ($scope, $http) {
-
+    .controller('AltCtrl', function ($scope, $http, $log) {
+        var regex = /en\.wikipedia\.org\/wiki\/.+/; // regex to match candidates
 
         $('#tokenfield').tokenfield({
             autocomplete: {
@@ -21,8 +21,8 @@ angular.module('wikiDiverApp')
             "outline of"
         ];
 
-        $scope.query = "";
-        var regex = /en\.wikipedia\.org\/wiki\/.+/g;
+        $scope.query = "http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil";
+        
         $scope.depth = 2;
         $scope.qarr = [];
         $scope.res = [];
@@ -33,7 +33,7 @@ angular.module('wikiDiverApp')
 
 
         $scope.update = function () {
-
+            $log.debug('starting crawling for', $scope.query.split('\n').length, 'pages')
             $scope.alert=false;
             $scope.download=false;
             $scope.notFound=[];
@@ -41,30 +41,42 @@ angular.module('wikiDiverApp')
             $scope.edges=[];
             $scope.res = [];
 
-            if ($scope.query !== "") {
+            if ($scope.query.trim() !== '') {
+                var errors = [],
+                    listOfPages = $scope.query.split('\n'),
+                    validPages  = [];
 
-                var error = false;
+                // check for integrity
+                validPages = listOfPages.filter(function(d) {
+                    $log.info('checking', d, regex.test(d)? 'is a wikipedia page': 'is not a wiki page ...');
 
-                $scope.qarr = $scope.query.split("\n");
-
-                //check for integrity
-                $scope.qarr.forEach(function (e, i) {
-                    if(!regex.test(e)) error = true;
+                    if(regex.test(d))
+                        return d;
+                    else
+                        errors.push(d);
                 });
 
-                if(!error) {
-                    $scope.qarr.forEach(function (e, i) {
+
+                $log.debug('valid wikipedia pages:',validPages, '/', listOfPages, 'n. error pages:', errors.length);
+
+                if(!errors.length) {
+                    validPages.forEach(function (e, i) {
                         console.log("input", JSON.stringify(e));
                         var ret = getSons(e, 0, $scope.res);
 
                         if (ret === null) console.log("error");
                     })
                     $scope.download = true;
+                } else {
+                    $log.error('Not valid wikipedia pages: ', errors);
+                    $scope.alert = true;
                 }
-                else $scope.alert=true;
+            } else {
+                $log.error('Empty Query!')
+                $scope.alert = true;
             }
-            else $scope.alert=true;
         }
+
 
         var getSons = function (line, ind, rec) {
 
