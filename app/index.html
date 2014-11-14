@@ -9,6 +9,7 @@
     <!-- build:css styles/vendor.css -->
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/bootstrap-tokenfield/dist/css/bootstrap-tokenfield.css" />
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
@@ -16,23 +17,36 @@
     <!-- endbuild -->
   </head>
   <body ng-app="wikiDiverApp">
+  <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+      <div class="container">
+          <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="#">Strumentalia</a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+          </div><!--/.nav-collapse -->
+      </div>
+  </nav>
     <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
     <!-- Add your site or application content here -->
-    <div class="container">
-      <div class="header">
 
-        <h3 class="text-muted">Seealsology</h3>
-      </div>
 
       <div ng-include="'views/main.html'" ng-controller="AltCtrl" style="overflow:hidden"></div>
 
       <div class="footer">
-        <p>from DensityDesign</p>
+          <div class="container">
+        <p>from <a href="http://www.densitydesign.org">DensityDesign</a></p>
+          </div>
       </div>
-    </div>
+
 
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
@@ -58,9 +72,10 @@
     <script src="bower_components/json3/lib/json3.js"></script>
     <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <script src="bower_components/angular-animate/angular-animate.js"></script>
+    <script src="bower_components/FileSaver/FileSaver.js"></script>
+    <script src="bower_components/bootstrap-tokenfield/dist/bootstrap-tokenfield.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
-    <script src="bower_components/FileSaver/FileSaver.min.js"></script>
         <!-- build:js({.tmp,app}) scripts/scripts.js -->
         <script src="scripts/app.js"></script>
         <script src="scripts/controllers/main.js"></script>
