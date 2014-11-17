@@ -10,5 +10,6 @@
  */
 angular
   .module('wikiDiverApp', [
-    'ngAnimate'
+    'ngAnimate',
+    'ngTagsInput'
   ]);

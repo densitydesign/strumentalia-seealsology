@@ -4,14 +4,6 @@ angular.module('wikiDiverApp')
     .controller('AltCtrl', function ($scope, $http) {
 
 
-        $('#tokenfield').tokenfield({
-            autocomplete: {
-                source: ['red', 'blue', 'green', 'yellow', 'violet', 'brown', 'purple', 'black', 'white'],
-                delay: 100
-            },
-            showAutocompleteOnFocus: true
-        });
-
         $scope.stopWords = [
             "list of",
             "index of",
@@ -22,7 +14,7 @@ angular.module('wikiDiverApp')
         ];
 
         $scope.query = "";
-        var regex = /en\.wikipedia\.org\/wiki\/.+/g;
+        var regex = /en\.wikipedia\.org\/wiki\/.+/;
         $scope.depth = 2;
         $scope.qarr = [];
         $scope.res = [];
@@ -40,21 +32,29 @@ angular.module('wikiDiverApp')
             $scope.stopped=[];
             $scope.edges=[];
             $scope.res = [];
+            console.log($scope.stopWords);
 
             if ($scope.query !== "") {
 
                 var error = false;
 
+
                 $scope.qarr = $scope.query.split("\n");
 
                 //check for integrity
                 $scope.qarr.forEach(function (e, i) {
-                    if(!regex.test(e)) error = true;
+
+                    if(!regex.test(e)) {
+
+                        error = true;
+
+                    }
+
                 });
 
                 if(!error) {
                     $scope.qarr.forEach(function (e, i) {
-                        console.log("input", JSON.stringify(e));
+
                         var ret = getSons(e, 0, $scope.res);
 
                         if (ret === null) console.log("error");
@@ -103,7 +103,7 @@ angular.module('wikiDiverApp')
                         output.forEach(function (d, j) {
                             var found = false;
                             $scope.stopWords.forEach(function(a,b){
-                                if(d.toLowerCase().indexOf(a)>=0) {
+                                if(d.toLowerCase().indexOf(a.text)>=0) {
                                     $scope.stopped.push(d);
                                     found = true;
                                 }
