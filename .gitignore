@@ -33,3 +33,6 @@ bower_components
 .DS_Store
 .idea
 .tmp
+
+# dist folder
+dist
