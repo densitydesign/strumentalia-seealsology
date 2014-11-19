@@ -187,8 +187,22 @@ angular.module('wikiDiverApp')
         $scope.downloadGEXF = function() {
             var gexfDoc = gexf.create();
 
+            gexfDoc.setNodeModel([
+                {
+                    id: 'level',
+                    title: 'Level',
+                    type: 'integer'
+                }
+            ]);
+
             $scope.nodes.forEach(function(n) {
-                gexfDoc.addNode({id: n.name, label: n.name});
+                gexfDoc.addNode({
+                    id: n.name,
+                    label: n.name,
+                    attributes: {
+                        level: n.level
+                    }
+                });
             });
 
             $scope.edges.forEach(function(e) {
