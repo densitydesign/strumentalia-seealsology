@@ -59,7 +59,7 @@ angular.module('wikiDiverApp')
                 validPages = listOfPages.filter(function(d) {
                     if(d.trim() == '')
                         return false;
-                    
+
                     $log.info('checking', d, regex.test(d)? 'is a wikipedia page': 'is not a wiki page ...');
 
                     if(regex.test(d))
@@ -211,13 +211,7 @@ angular.module('wikiDiverApp')
         $scope.downloadGEXF = function() {
             var gexfDoc = gexf.create();
 
-            gexfDoc.setNodeModel([
-                {
-                    id: 'level',
-                    title: 'Level',
-                    type: 'integer'
-                }
-            ]);
+            gexfDoc.addNodeAttribute({id: 'level', title: 'Level', type: 'integer'});
 
             $scope.nodes.forEach(function(n) {
                 gexfDoc.addNode({
