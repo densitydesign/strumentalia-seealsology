@@ -17,7 +17,7 @@ angular.module('wikiDiverApp')
             "wikisource:"
         ];
 
-        $scope.query = "http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil\n";
+        $scope.query = "";//http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil\n";
 
         $scope.depth = 2;
         $scope.qarr = [];
