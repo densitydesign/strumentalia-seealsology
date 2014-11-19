@@ -60,7 +60,8 @@
             </div>
             <div class="row">
                 <div class="col-md-12">
-                    <button type="button" ng-click="update()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
+                    <button ng-show="resolved == pending" type="button" ng-click="update()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
+                    <div style="margin:0" ng-show="resolved != pending"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} parent nodes resolved</div>
                 </div>
             </div>
 
@@ -92,8 +93,8 @@
             <div class="box">
 
                 <div class="btn-group">
-                    <button type="button" class="btn btn-success btn-lg">Download</button>
-                    <button type="button" class="btn btn-success dropdown-toggle btn-lg " data-toggle="dropdown" aria-expanded="false">
+                    <button ng-disabled="resolved != pending" type="button" class="btn btn-success btn-lg">Download</button>
+                    <button ng-disabled="resolved != pending" type="button" class="btn btn-success dropdown-toggle btn-lg " data-toggle="dropdown" aria-expanded="false">
                         <span class="caret"></span>
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>

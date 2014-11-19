@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('wikiDiverApp')
-    .controller('AltCtrl', function ($scope, $http, $log) {
+    .controller('AltCtrl', function ($scope, $http, $log, $timeout) {
         var regex = /en\.wikipedia\.org\/wiki\/.+/; // regex to match candidates
 
         $scope.stopWords = [
@@ -26,6 +26,9 @@ angular.module('wikiDiverApp')
         $scope.stopped=[];
         $scope.edges=[];
         $scope.nodes=[];
+        $scope.pending=0;
+        $scope.resolved=0;
+
 
 
 
@@ -43,6 +46,8 @@ angular.module('wikiDiverApp')
             $scope.nodes=[];
             $scope.edges=[];
             $scope.res = [];
+            $scope.pending=0;
+            $scope.resolved=0;
 
 
             if ($scope.query.trim() !== '') {
@@ -69,7 +74,7 @@ angular.module('wikiDiverApp')
                 if(!errors.length) {
                     validPages.forEach(function (e, i) {
                         console.log("input", JSON.stringify(e));
-
+                        $scope.pending++;
                         var ret = getSons(e, 0, $scope.res);
 
                         if (ret === null) console.log("error");
@@ -131,6 +136,7 @@ angular.module('wikiDiverApp')
 
 
                             if(!found) {
+
                                 if(!$scope.nodes.filter(function(e){return e.name===d}).length) $scope.nodes.push({name:d,level:ind+1});
                                 $scope.edges.push({source: decodeURIComponent(name).replace(/_/g, " "), target: d, index: ind + 1});
                                 sons.push({name: d, index: ind + 1});
@@ -140,6 +146,7 @@ angular.module('wikiDiverApp')
                         })
 
                         if(ind ==0) {
+
                             var obj = {};
                             obj.name = decodeURIComponent(name).replace(/_/g, " ");
                             obj.index = ind;
@@ -152,16 +159,23 @@ angular.module('wikiDiverApp')
                         }
 
                         if (ind + 1 < $scope.depth) {
+
+                            $scope.pending+=sons.length;
+
                             sons.forEach(function (m, y) {
                                 m.sons = []
                                 getSons(m, ind + 1, m);
+
                             })
                         }
+                       $scope.resolved++;
                     });
                 }
                 else {
                     if($scope.notFound.indexOf(decodeURIComponent(name))==-1) $scope.notFound.push(decodeURIComponent(name));
+                    $scope.resolved++;
                 }
+
             });
         }
 
@@ -222,6 +236,10 @@ angular.module('wikiDiverApp')
             var blob = new Blob([gexfDoc.serialize()], { type: "data:application/xml+gexf;charset=utf-8" });
             saveAs(blob, "data.gexf")
         };
+
+        $scope.$watch("resolved",function(newValue,oldValue){
+            $log.debug("resolved",newValue,"pending",$scope.pending);
+        })
     });
 
 
