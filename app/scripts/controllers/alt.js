@@ -4,14 +4,6 @@ angular.module('wikiDiverApp')
     .controller('AltCtrl', function ($scope, $http, $log) {
         var regex = /en\.wikipedia\.org\/wiki\/.+/; // regex to match candidates
 
-        $('#tokenfield').tokenfield({
-            autocomplete: {
-                source: ['red', 'blue', 'green', 'yellow', 'violet', 'brown', 'purple', 'black', 'white'],
-                delay: 100
-            },
-            showAutocompleteOnFocus: true
-        });
-
         $scope.stopWords = [
             "list of",
             "index of",
@@ -21,8 +13,8 @@ angular.module('wikiDiverApp')
             "outline of"
         ];
 
-        $scope.query = "http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil";
-        
+        $scope.query = "";
+
         $scope.depth = 2;
         $scope.qarr = [];
         $scope.res = [];
@@ -40,6 +32,7 @@ angular.module('wikiDiverApp')
             $scope.stopped=[];
             $scope.edges=[];
             $scope.res = [];
+            console.log($scope.stopWords);
 
             if ($scope.query.trim() !== '') {
                 var errors = [],
@@ -48,9 +41,9 @@ angular.module('wikiDiverApp')
 
                 // check for integrity
                 validPages = listOfPages.filter(function(d) {
-                    $log.info('checking', d, regex.test(d)? 'is a wikipedia page': 'is not a wiki page ...');
+                    $log.info('checking', d, regex.search(d)? 'is a wikipedia page': 'is not a wiki page ...');
 
-                    if(regex.test(d))
+                    if(regex.search(d))
                         return d;
                     else
                         errors.push(d);
@@ -62,6 +55,7 @@ angular.module('wikiDiverApp')
                 if(!errors.length) {
                     validPages.forEach(function (e, i) {
                         console.log("input", JSON.stringify(e));
+
                         var ret = getSons(e, 0, $scope.res);
 
                         if (ret === null) console.log("error");
@@ -115,7 +109,7 @@ angular.module('wikiDiverApp')
                         output.forEach(function (d, j) {
                             var found = false;
                             $scope.stopWords.forEach(function(a,b){
-                                if(d.toLowerCase().indexOf(a)>=0) {
+                                if(d.toLowerCase().indexOf(a.text)>=0) {
                                     $scope.stopped.push(d);
                                     found = true;
                                 }
