@@ -24,23 +24,22 @@
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="message">
-                            Paste your list of wikipedia articles here
-                        </label>
-                    <textarea  name="message" id="message" class="form-control" rows="9" cols="25"
-                               placeholder="ex: http://en.wikipedia.org/wiki/Climate_change"  ng-model="$parent.query"></textarea>
+                            Paste your list of wikipedia articles here</label>
+                        <textarea  name="message" id="message" class="form-control" rows="9" cols="25"
+                                   placeholder="ex: http://en.wikipedia.org/wiki/Climate_change"  ng-model="$parent.query"></textarea>
 
 
-                </div>
-                    <div class="row">
-                    <div class="col-md-12">
-                        <div ng-show="alert" class="alert alert-warning" role="alert">Ouch. There is a mistake</div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div ng-show="alert" class="alert alert-warning" role="alert">Ouch. There is a mistake</div>
+                        </div>
+                    </div>
+
+
+
                 </div>
-
-
-
             </div>
-        </div>
             <div class="row">
                 <div class="col-md-2">
                     <div class="form-group">
@@ -66,7 +65,7 @@
             </div>
 
 
-    </div>
+        </div>
 
 
         <div ng-show="res.length"class="results col-md-8">
@@ -81,11 +80,11 @@
                     </tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="entity in edges">
-                            <td>{{entity.source}}</td><td>{{entity.target}}</td><td>{{entity.index}}</td>
-                        </tr>
+                    <tr ng-repeat="entity in edges">
+                        <td>{{entity.source}}</td><td>{{entity.target}}</td><td>{{entity.index}}</td>
+                    </tr>
                     </tbody>
-                    </table>
+                </table>
             </div>
         </div>
 
@@ -101,32 +100,38 @@
                     <ul class="dropdown-menu" role="menu">
                         <li><a ng-click="downloadJSON()" href="#">JSON</a></li>
                         <li><a ng-click="downloadCSV()" href="#">TSV</a></li>
-                       <!-- <li><a href="#">GEFX</a></li>-->
+                        <li><a ng-click="downloadGEXF()" href="#">GEXF</a></li>
                     </ul>
                 </div>
 
-              <!--  <button type="button" ng-show="download" class="btn btn-info" ng-click="downloadJSON()">Download JSON</button>
-                <button type="button" ng-show="download" class="btn btn-info" ng-click="downloadCSV()">Download CSV</button>-->
+                <!--  <button type="button" ng-show="download" class="btn btn-info" ng-click="downloadJSON()">Download JSON</button>
+                  <button type="button" ng-show="download" class="btn btn-info" ng-click="downloadCSV()">Download CSV</button>-->
 
-            <div class="notFound">
-                <div class="lbl"><b>Not found (See also section missing, or bad page name)</b></div>
-                <ul>
-                    <li ng-repeat="page in notFound track by $index">{{page}}</li>
-                </ul>
-            </div>
-            <br/>
-
-            <div class="stopped">
-                <div class="lbl"><b>Stopped from stopWord list</b></div>
-                <ul>
-                    <li ng-repeat="page in stopped">{{page}}</li>
-                </ul>
-            </div>
+                <div class="notFound">
+                    <div class="lbl"><b>Not found (See also section missing, or bad page name)</b></div>
+                    <ul>
+                        <li ng-repeat="page in notFound track by $index">{{page}}</li>
+                    </ul>
                 </div>
+                <br/>
+
+                <div class="stopped">
+                    <div class="lbl"><b>Stopped from stopWord list</b></div>
+                    <ul>
+                        <li ng-repeat="page in stopped track by $index">{{page}}</li>
+                    </ul>
+                </div>
+              <!--  <div class="repeated">
+                    <div class="lbl"><b>Repeated pages</b></div>
+                    <ul>
+                        <li ng-repeat="page in repeated track by $index">{{page}}</li>
+                    </ul>
+                </div>-->
+            </div>
         </div>
 
 
-        </div>
+    </div>
 </section>
 
 

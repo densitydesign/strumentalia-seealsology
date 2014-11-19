@@ -10,10 +10,14 @@ angular.module('wikiDiverApp')
             "categories of",
             "portal",
             "disambiguation",
-            "outline of"
+            "outline of",
+            "Wikipedia:",
+            "Category:",
+            "File:",
+            "wikisource:"
         ];
 
-        $scope.query = "";
+        $scope.query = "http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil\n";
 
         $scope.depth = 2;
         $scope.qarr = [];
@@ -24,15 +28,22 @@ angular.module('wikiDiverApp')
         $scope.nodes=[];
 
 
+
+        function onlyUnique(value, index, self) {
+            return self.indexOf(value) === index;
+        }
+
+
         $scope.update = function () {
             $log.debug('starting crawling for', $scope.query.split('\n').length, 'pages')
             $scope.alert=false;
             $scope.download=false;
             $scope.notFound=[];
             $scope.stopped=[];
+            $scope.nodes=[];
             $scope.edges=[];
             $scope.res = [];
-            console.log($scope.stopWords);
+
 
             if ($scope.query.trim() !== '') {
                 var errors = [],
@@ -41,9 +52,12 @@ angular.module('wikiDiverApp')
 
                 // check for integrity
                 validPages = listOfPages.filter(function(d) {
-                    $log.info('checking', d, regex.search(d)? 'is a wikipedia page': 'is not a wiki page ...');
+                    if(d.trim() == '')
+                        return false;
+                    
+                    $log.info('checking', d, regex.test(d)? 'is a wikipedia page': 'is not a wiki page ...');
 
-                    if(regex.search(d))
+                    if(regex.test(d))
                         return d;
                     else
                         errors.push(d);
@@ -81,12 +95,12 @@ angular.module('wikiDiverApp')
 
             if (ind == 0) {
                 name = rgx.exec(line)[1];
-                $scope.nodes.push(decodeURIComponent(name).replace(/_/g, " "));
+                $scope.nodes.push({name:decodeURIComponent(name).replace(/_/g, " "),level:0});
             }
 
             else name = encodeURIComponent(line.name);
 
-            $http.jsonp('http://en.wikipedia.org/w/api.php?action=parse&page=' + name + '&prop=sections&format=json' + '&callback=JSON_CALLBACK').success(function (data) {
+            $http.jsonp('http://en.wikipedia.org/w/api.php?action=parse&page=' + name + '&prop=sections&format=json&redirects' + '&callback=JSON_CALLBACK').success(function (data) {
 
                 if(data.parse===null || !data.parse) return null;
 
@@ -102,7 +116,7 @@ angular.module('wikiDiverApp')
                 })
 
                 if (index !== null) {
-                    $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ name +'&rvprop=content&rvsection='+ index +'&callback=JSON_CALLBACK').success(function (links) {
+                    $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ name +'&rvprop=content&rvsection='+ index +'&redirects&callback=JSON_CALLBACK').success(function (links) {
 
                         var output = parseSection(links)
 
@@ -110,16 +124,18 @@ angular.module('wikiDiverApp')
                             var found = false;
                             $scope.stopWords.forEach(function(a,b){
                                 if(d.toLowerCase().indexOf(a.text)>=0) {
-                                    $scope.stopped.push(d);
+                                    if($scope.stopped.indexOf(d)==-1) $scope.stopped.push(d);
                                     found = true;
                                 }
                             })
 
 
                             if(!found) {
-                                if($scope.nodes.indexOf(d)==-1)  $scope.nodes.push(d);
-                                $scope.edges.push({source:decodeURIComponent(name).replace(/_/g, " "),target:d,index:ind+1});
-                                sons.push({name: d,index:ind+1});
+                                if(!$scope.nodes.filter(function(e){return e.name===d}).length) $scope.nodes.push({name:d,level:ind+1});
+                                $scope.edges.push({source: decodeURIComponent(name).replace(/_/g, " "), target: d, index: ind + 1});
+                                sons.push({name: d, index: ind + 1});
+
+
                             }
                         })
 
@@ -144,7 +160,7 @@ angular.module('wikiDiverApp')
                     });
                 }
                 else {
-                    $scope.notFound.push(decodeURIComponent(name));
+                    if($scope.notFound.indexOf(decodeURIComponent(name))==-1) $scope.notFound.push(decodeURIComponent(name));
                 }
             });
         }
@@ -176,6 +192,21 @@ angular.module('wikiDiverApp')
             })
             var blob = new Blob([csvtxt], { type: "data:text/csv;charset=utf-8" });
             saveAs(blob, "data.tsv")
+        };
+
+        $scope.downloadGEXF = function() {
+            var gexfDoc = gexf.create();
+
+            $scope.nodes.forEach(function(n) {
+                gexfDoc.addNode({id: n.name, label: n.name});
+            });
+
+            $scope.edges.forEach(function(e) {
+                gexfDoc.addEdge({source: e.source, target: e.target});
+            });
+
+            var blob = new Blob([gexfDoc.serialize()], { type: "data:application/xml+gexf;charset=utf-8" });
+            saveAs(blob, "data.gexf")
         };
     });
 
