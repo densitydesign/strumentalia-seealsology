@@ -4,6 +4,8 @@ Seealsology is simple tool that allows you to explore in a quick and dirty way t
 To make it simple, it extracts all the links in the "[See also](https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Layout#See_also_section)" section producing a graph. 
 The tool works only with the english version of Wikipedia.
 
+Try it here: http://labs.densitydesign.org/seealsology/
+
 Usage
 -----
 
