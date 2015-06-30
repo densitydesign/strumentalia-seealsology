@@ -24,6 +24,6 @@ On the right panel, errors, stopped pages and exceptions (if any) will be printe
 Again in the right panel a "Download" button will allow you to download the results.
 Three formats are available:
 * **TSV.** A tab-separated table, easily editable in Libreoffice, Google Sheets, Excel. In the table, each line represent a connection from the source article to one target article cited in the "see also" section. The table contains three columns. "Source" contains the analyzed articles. "Target" contains the collected ones. "Level" is the distance from the original node.
-* **JSON.** The network described as object. It is compatible both with D3.js and sigma.js.
+* **JSON.** The network described as object. It is compatible both with [D3.js](http://bl.ocks.org/mbostock/4062045) and [sigma.js](http://sigmajs.org/).
 It contains two arrays of objects: the first one containing nodes, the second one containing edges. Each node and edge is defined as object.
-* **GEXF.** The network in XML-compliant format, easily importable in Gephi, an opensource tool for network visualization.
+* **GEXF.** The network in [XML-compliant format](http://gexf.net/format/), easily importable in [Gephi](http://gephi.github.io/), an opensource tool for network visualization.
