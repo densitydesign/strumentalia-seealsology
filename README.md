@@ -4,10 +4,9 @@ Seealsology is simple tool that allows you to explore in a quick and dirty way t
 To make it simple, it extracts all the links in the "[See also](https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Layout#See_also_section)" section producing a graph. 
 The tool works only with the english version of Wikipedia.
 
-Try it here: http://labs.densitydesign.org/seealsology/
+**Try it here: http://labs.densitydesign.org/seealsology/**
 
-Usage
------
+##Usage
 
 Paste the full link to one or more english Wikipedia articles (one per line).
 
@@ -17,8 +16,7 @@ Increasing the value, the toll will perform the same operation on each retrieved
 With the "stop words" field it is possible to define wich pages should be discarded. 
 The software will look for each stopword in the article title, if there is a match the article will be discarded.
 
-Output
-------
+##Output
 
 Results will be printed as list meanwhile the data collection is performed. 
 On the right panel, errors, stopped pages and exceptions (if any) will be printed.
