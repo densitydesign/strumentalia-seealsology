@@ -105,39 +105,42 @@ angular.module('wikiDiverApp')
 
             else name = encodeURIComponent(line.name);
 
-            $http.jsonp('http://en.wikipedia.org/w/api.php?action=parse&page=' + name + '&prop=sections&format=json&redirects' + '&callback=JSON_CALLBACK').success(function (data) {
+            $http.jsonp('http://en.wikipedia.org/w/api.php?action=parse&page=' + name + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK').success(function (data) {
 
                 if(data.parse===null || !data.parse) return null;
 
-                var p = data.parse;
-                index = null;
+                var p = data.parse,
+                    section = null;
 
                 p.sections.forEach(function (e, i) {
 
                     if (e.line === "See also") {
-                        index = e.index
+                        section = e.index
                     }
 
                 })
 
-                if (index !== null) {
-                    $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ name +'&rvprop=content&rvsection='+ index +'&redirects&callback=JSON_CALLBACK').success(function (links) {
+                if (section !== null) {
+                    $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ name +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK').success(function (links) {
 
                         var output = parseSection(links)
 
                         output.forEach(function (d, j) {
-                            var found = false;
+                            var skip = false;
                             $scope.stopWords.forEach(function(a,b){
                                 if(d.toLowerCase().indexOf(a.text)>=0) {
                                     if($scope.stopped.indexOf(d)==-1) $scope.stopped.push(d);
-                                    found = true;
+                                    skip = true;
                                 }
                             })
 
 
-                            if(!found) {
+                            if(!skip) {
 
-                                if(!$scope.nodes.filter(function(e){return e.name===d}).length) $scope.nodes.push({name:d,level:ind+1});
+                                var existingNode = $scope.nodes.filter(function(e){return e.name===d});
+                                if (!existingNode.length)
+                                    $scope.nodes.push({name:d,level:ind+1});
+                                else existingNode[0].level = Math.min(ind+1, existingNode[0].level);
                                 $scope.edges.push({source: decodeURIComponent(name).replace(/_/g, " "), target: d, index: ind + 1});
                                 sons.push({name: d, index: ind + 1});
 
