@@ -70,7 +70,7 @@ angular.module('wikiDiverApp')
                     validPages.forEach(function (e, i) {
                         console.log("input", JSON.stringify(e));
                         $scope.pending++;
-                        var ret = getSons(e, 0, $scope.res);
+                        var ret = getRelatives(e, 0, $scope.res);
 
                         if (ret === null) console.log("error");
                     })
@@ -85,12 +85,14 @@ angular.module('wikiDiverApp')
             }
         }
 
-        function downloadPageSeeAlsoLinks(page, section, callback){
-            var id = page + "/" + section;
+        function downloadPageSeeAlsoSection(pageName, section, callback){
+
+            var id = pageName + "/" + section;
             if (!$scope.cacheLinks[id]){
-              $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ page +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK')
+
+              $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageName +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK')
                 .success(function(links){
-                    console.log(links);
+
                     var goodPages = [];
                     parseSection(links).forEach(function(d){
                         var skip = false;
@@ -102,6 +104,7 @@ angular.module('wikiDiverApp')
                         })
                         if(!skip) goodPages.push(d);
                     })
+
                     $scope.cacheLinks[id] = goodPages;
                     callback(goodPages);
                 });
@@ -109,81 +112,104 @@ angular.module('wikiDiverApp')
             else callback($scope.cacheLinks[id]);
         }
 
-        var getSons = function (line, ind, rec) {
+        function downloadPageSeeAlsoLinks(pageName, callback, updateResolved){
 
-            var sons = [];
+            $http.jsonp('http://en.wikipedia.org/w/api.php?action=parse&page=' + pageName + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK')
+              .success(function (data) {
+
+                if(data.parse===null || !data.parse) return;
+
+                var section = null;
+                data.parse.sections.forEach(function(e){
+                    if (e.line === "See also") section = e.index;
+                })
+
+                if (section !== null) downloadPageSeeAlsoSection(pageName, section, callback);
+                else if($scope.notFound.indexOf(decodeURIComponent(pageName))==-1 && updateResolved) $scope.notFound.push(decodeURIComponent(pageName));
+
+              })
+              .finally(function(){
+                if (updateResolved) $scope.resolved++;
+              });
+        }
+
+        function addNode(pageName, level){
+            var existingNode = $scope.nodes.filter(function(e){return e.name===pageName});
+            if (!existingNode.length)
+                $scope.nodes.push({
+                  name: pageName,
+                  level: level
+                });
+            else existingNode[0].level = Math.min(level, existingNode[0].level);
+        }
+ 
+        var getRelatives = function(line, ind, rec){
+
             var name = "";
             var rgx = /wiki\/(.+)/g;
-
             if (ind == 0) {
                 name = rgx.exec(line)[1];
                 $scope.nodes.push({name:decodeURIComponent(name).replace(/_/g, " "),level:0});
-            }
-
-            else name = encodeURIComponent(line.name);
-
-            $http.jsonp('http://en.wikipedia.org/w/api.php?action=parse&page=' + name + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK').success(function (data) {
-
-                if(data.parse===null || !data.parse) return null;
-
-                var p = data.parse,
-                    section = null;
-
-                p.sections.forEach(function (e, i) {
-
-                    if (e.line === "See also") {
-                        section = e.index
-                    }
-
-                })
-
-                if (section !== null) {
-
-                    downloadPageSeeAlsoLinks(name, section, function(links){
-
-                        links.forEach(function(d) {
-                            var existingNode = $scope.nodes.filter(function(e){return e.name===d});
-                            if (!existingNode.length)
-                                $scope.nodes.push({name:d,level:ind+1});
-                            else existingNode[0].level = Math.min(ind+1, existingNode[0].level);
-                            $scope.edges.push({source: decodeURIComponent(name).replace(/_/g, " "), target: d, index: ind + 1});
-                            sons.push({name: d, index: ind + 1});
-                        })
-
-                        if(ind == 0) {
-
-                            var obj = {};
-                            obj.name = decodeURIComponent(name).replace(/_/g, " ");
-                            obj.index = ind;
-                            obj.sons = sons;
-                            rec.push(obj);
-                        }
-
-                        else {
-                            rec.sons = sons;
-                        }
-
-                        if (ind + 1 < $scope.depth) {
-
-                            $scope.pending+=sons.length;
-
-                            sons.forEach(function (m, y) {
-                                m.sons = []
-                                getSons(m, ind + 1, m);
-
-                            })
-                        }
-                       $scope.resolved++;
-                    });
-                }
-                else {
-                    if($scope.notFound.indexOf(decodeURIComponent(name))==-1) $scope.notFound.push(decodeURIComponent(name));
-                    $scope.resolved++;
-                }
-
-            });
+            } else name = encodeURIComponent(line.name);
+            getSons(name, ind, rec);
+            getParents(name, ind, rec);
         }
 
+        var getSons = function (name, ind, rec) {
+
+            var sons = [];
+
+            downloadPageSeeAlsoLinks(name, function(links){
+
+                links.forEach(function(d) {
+                    addNode(d, ind+1);
+                    $scope.edges.push({source: decodeURIComponent(name).replace(/_/g, " "), target: d, index: ind + 1});
+                    sons.push({name: d, index: ind + 1});
+                })
+
+                if(ind == 0) {
+                    var obj = {};
+                    obj.name = decodeURIComponent(name).replace(/_/g, " ");
+                    obj.index = ind;
+                    obj.seed = true;
+                    obj.sons = sons;
+                    rec.push(obj);
+                } else rec.sons = sons;
+
+                if (ind + 1 < $scope.depth) {
+                    $scope.pending += sons.length;
+                    sons.forEach(function (m, y) {
+                        m.sons = []
+                        getRelatives(m, ind + 1, m);
+                    })
+                }
+            }, true);
+        }
+
+        var getParents = function (name, ind, rec) {
+
+            $http.jsonp('http://en.wikipedia.org/w/api.php?action=query&bltitle=' + name + '&blnamespace=0&list=backlinks&blredirect&blfilterredir=nonredirects&bllimit=250&format=json&callback=JSON_CALLBACK')
+              .success(function(data){
+
+                if(data.query===null || !data.query.backlinks) return null;
+
+                data.query.backlinks.forEach(function(parentPage){
+                    var parentName = parentPage.title;
+                    downloadPageSeeAlsoLinks(parentName, function(links){
+                        var found = false;
+                        links.forEach(function(l){
+                            if (l.toLowerCase() === decodeURIComponent(name).replace(/_/g, " ").toLowerCase())
+                                found = true;
+                        });
+                        if (found){
+                            addNode(parentName, ind-1);
+                            $scope.edges.push({source: parentName, target: decodeURIComponent(name).replace(/_/g, " "), index: ind});
+                        }
+                    });
+                });
+              });
+        }
+                    
         var parseSection=function(obj) {
             var o = obj.query.pages[Object.keys(obj.query.pages)[0]].revisions[0]['*'];
             var regex = /\[\[(.*?)\]\]/g;
@@ -217,13 +243,15 @@ angular.module('wikiDiverApp')
             var gexfDoc = gexf.create({defaultEdgeType: 'directed'});
 
             gexfDoc.addNodeAttribute({id: 'level', title: 'Level', type: 'integer'});
+            gexfDoc.addNodeAttribute({id: 'seed', title: 'Seed', type: 'boolean'});
 
             $scope.nodes.forEach(function(n) {
                 gexfDoc.addNode({
                     id: n.name,
                     label: n.name,
                     attributes: {
-                        level: n.level
+                        level: n.level,
+                        seed: !!n.seed
                     }
                 });
             });
