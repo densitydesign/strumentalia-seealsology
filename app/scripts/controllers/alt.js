@@ -20,15 +20,16 @@ angular.module('wikiDiverApp')
         $scope.query = "";//http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil\n";
 
         $scope.depth = 2;
+        $scope.getParents = true;
         $scope.qarr = [];
         $scope.res = [];
-        $scope.notFound=[];
-        $scope.stopped=[];
-        $scope.edges=[];
-        $scope.nodes=[];
-        $scope.pending=0;
-        $scope.resolved=0;
-        $scope.cacheLinks={};
+        $scope.notFound = [];
+        $scope.stopped = [];
+        $scope.edges = [];
+        $scope.nodes = [];
+        $scope.pending = 0;
+        $scope.resolved = 0;
+        $scope.cacheLinks = {};
 
         function onlyUnique(value, index, self) {
             return self.indexOf(value) === index;
@@ -152,7 +153,8 @@ angular.module('wikiDiverApp')
                 $scope.nodes.push({name:decodeURIComponent(name).replace(/_/g, " "),level:0});
             } else name = encodeURIComponent(line.name);
             getSons(name, ind, rec);
-            getParents(name, ind, rec);
+            if ($scope.getParents)
+                getParents(name, ind, rec);
         }
 
         var getSons = function (name, ind, rec) {

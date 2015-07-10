@@ -46,7 +46,13 @@
                         <label>Distance</label>
                         <span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
                         <div class="controls col-xm-3">
-                            <input type="number"  name="input" ng-model="$parent.depth" min="1" max="99" style="width:100px" required>
+                            <input type="number" name="input" ng-model="$parent.depth" min="1" max="99" style="width:100px" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="controls col-xm-3">
+                            <input type="checkbox" name="parents" ng-model="$parent.getParents" checked>
+                            <label>Parent links</label>
                         </div>
                     </div>
                 </div>
