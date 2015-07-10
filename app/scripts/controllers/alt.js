@@ -28,14 +28,11 @@ angular.module('wikiDiverApp')
         $scope.nodes=[];
         $scope.pending=0;
         $scope.resolved=0;
-
-
-
+        $scope.cacheLinks={};
 
         function onlyUnique(value, index, self) {
             return self.indexOf(value) === index;
         }
-
 
         $scope.update = function () {
             $log.debug('starting crawling for', $scope.query.split('\n').length, 'pages')
@@ -48,7 +45,6 @@ angular.module('wikiDiverApp')
             $scope.res = [];
             $scope.pending=0;
             $scope.resolved=0;
-
 
             if ($scope.query.trim() !== '') {
                 var errors = [],
@@ -67,7 +63,6 @@ angular.module('wikiDiverApp')
                     else
                         errors.push(d);
                 });
-
 
                 $log.debug('valid wikipedia pages:',validPages, '/', listOfPages, 'n. error pages:', errors.length);
 
@@ -90,13 +85,35 @@ angular.module('wikiDiverApp')
             }
         }
 
+        function downloadPageSeeAlsoLinks(page, section, callback){
+            var id = page + "/" + section;
+            if (!$scope.cacheLinks[id]){
+              $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ page +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK')
+                .success(function(links){
+                    console.log(links);
+                    var goodPages = [];
+                    parseSection(links).forEach(function(d){
+                        var skip = false;
+                        $scope.stopWords.forEach(function(a,b){
+                            if(d.toLowerCase().indexOf(a.text)>=0){
+                                if($scope.stopped.indexOf(d)==-1) $scope.stopped.push(d);
+                                skip = true;
+                            }
+                        })
+                        if(!skip) goodPages.push(d);
+                    })
+                    $scope.cacheLinks[id] = goodPages;
+                    callback(goodPages);
+                });
+            }
+            else callback($scope.cacheLinks[id]);
+        }
 
         var getSons = function (line, ind, rec) {
 
             var sons = [];
             var name = "";
             var rgx = /wiki\/(.+)/g;
-            var index = null;
 
             if (ind == 0) {
                 name = rgx.exec(line)[1];
@@ -121,34 +138,19 @@ angular.module('wikiDiverApp')
                 })
 
                 if (section !== null) {
-                    $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ name +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK').success(function (links) {
 
-                        var output = parseSection(links)
+                    downloadPageSeeAlsoLinks(name, section, function(links){
 
-                        output.forEach(function (d, j) {
-                            var skip = false;
-                            $scope.stopWords.forEach(function(a,b){
-                                if(d.toLowerCase().indexOf(a.text)>=0) {
-                                    if($scope.stopped.indexOf(d)==-1) $scope.stopped.push(d);
-                                    skip = true;
-                                }
-                            })
-
-
-                            if(!skip) {
-
-                                var existingNode = $scope.nodes.filter(function(e){return e.name===d});
-                                if (!existingNode.length)
-                                    $scope.nodes.push({name:d,level:ind+1});
-                                else existingNode[0].level = Math.min(ind+1, existingNode[0].level);
-                                $scope.edges.push({source: decodeURIComponent(name).replace(/_/g, " "), target: d, index: ind + 1});
-                                sons.push({name: d, index: ind + 1});
-
-
-                            }
+                        links.forEach(function(d) {
+                            var existingNode = $scope.nodes.filter(function(e){return e.name===d});
+                            if (!existingNode.length)
+                                $scope.nodes.push({name:d,level:ind+1});
+                            else existingNode[0].level = Math.min(ind+1, existingNode[0].level);
+                            $scope.edges.push({source: decodeURIComponent(name).replace(/_/g, " "), target: d, index: ind + 1});
+                            sons.push({name: d, index: ind + 1});
                         })
 
-                        if(ind ==0) {
+                        if(ind == 0) {
 
                             var obj = {};
                             obj.name = decodeURIComponent(name).replace(/_/g, " ");
