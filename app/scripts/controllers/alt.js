@@ -209,7 +209,7 @@ angular.module('wikiDiverApp')
         };
 
         $scope.downloadGEXF = function() {
-            var gexfDoc = gexf.create();
+            var gexfDoc = gexf.create({defaultEdgeType: 'directed'});
 
             gexfDoc.addNodeAttribute({id: 'level', title: 'Level', type: 'integer'});
 
