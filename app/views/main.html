@@ -66,8 +66,8 @@
             </div>
             <div class="row">
                 <div class="col-md-12">
-                    <button ng-show="resolved == pending" type="button" ng-click="update()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
-                    <div style="margin:0" ng-show="resolved != pending"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} parent nodes resolved</div>
+                    <button ng-show="resolved == pending && parentsResolved == parentsPending" type="button" ng-click="update()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
+                    <div style="margin:0" ng-show="resolved != pending || parentsResolved != parentsPending"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} pages resolved</div>
                 </div>
             </div>
 
@@ -99,8 +99,8 @@
             <div class="box">
 
                 <div class="btn-group">
-                    <button ng-disabled="resolved != pending" type="button" class="btn btn-success btn-lg">Download</button>
-                    <button ng-disabled="resolved != pending" type="button" class="btn btn-success dropdown-toggle btn-lg " data-toggle="dropdown" aria-expanded="false">
+                    <button ng-disabled="resolved != pending || parentsResolved != parentsPending" type="button" class="btn btn-success btn-lg">Download</button>
+                    <button ng-disabled="resolved != pending || parentsResolved != parentsPending" type="button" class="btn btn-success dropdown-toggle btn-lg " data-toggle="dropdown" aria-expanded="false">
                         <span class="caret"></span>
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>
@@ -109,6 +109,7 @@
                         <li><a ng-click="downloadCSV()" href="#">TSV</a></li>
                         <li><a ng-click="downloadGEXF()" href="#">GEXF</a></li>
                     </ul>
+                    <span class="parents-msg" ng-show="getParents && (parentsResolved != parentsPending)">still resolving parents...</span>
                 </div>
 
                 <!--  <button type="button" ng-show="download" class="btn btn-info" ng-click="downloadJSON()">Download JSON</button>

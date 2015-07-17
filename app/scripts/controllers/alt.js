@@ -29,6 +29,8 @@ angular.module('wikiDiverApp')
         $scope.nodes = [];
         $scope.pending = 0;
         $scope.resolved = 0;
+        $scope.parentsPending = 0;
+        $scope.parentsResolved = 0;
         $scope.cacheLinks = {};
 
         function onlyUnique(value, index, self) {
@@ -37,15 +39,17 @@ angular.module('wikiDiverApp')
 
         $scope.update = function () {
             $log.debug('starting crawling for', $scope.query.split('\n').length, 'pages')
-            $scope.alert=false;
-            $scope.download=false;
-            $scope.notFound=[];
-            $scope.stopped=[];
-            $scope.nodes=[];
-            $scope.edges=[];
+            $scope.alert = false;
+            $scope.download = false;
+            $scope.notFound = [];
+            $scope.stopped = [];
+            $scope.nodes = [];
+            $scope.edges = [];
             $scope.res = [];
-            $scope.pending=0;
-            $scope.resolved=0;
+            $scope.pending = 0;
+            $scope.resolved = 0;
+            $scope.parentsPending = 0;
+            $scope.parentsResolved = 0;
 
             if ($scope.query.trim() !== '') {
                 var errors = [],
@@ -131,6 +135,7 @@ angular.module('wikiDiverApp')
               })
               .finally(function(){
                 if (updateResolved) $scope.resolved++;
+                else $scope.parentsResolved++;
               });
         }
 
@@ -195,6 +200,7 @@ angular.module('wikiDiverApp')
 
                 if(data.query===null || !data.query.backlinks) return null;
 
+                $scope.parentsPending += data.query.backlinks.length;
                 data.query.backlinks.forEach(function(parentPage){
                     var parentName = parentPage.title;
                     downloadPageSeeAlsoLinks(parentName, function(links){
@@ -266,8 +272,8 @@ angular.module('wikiDiverApp')
             saveAs(blob, "data.gexf")
         };
 
-        $scope.$watch("resolved",function(newValue,oldValue){
-            $log.debug("resolved",newValue,"pending",$scope.pending);
+        $scope.$watchCollection('[resolved, parentsResolved]', function(){
+            $log.debug("resolved", $scope.resolved, "pending", $scope.pending, "parents", $scope.parentsResolved+"/"+$scope.parentsPending);
         })
     });
 

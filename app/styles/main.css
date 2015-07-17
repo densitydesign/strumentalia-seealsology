@@ -182,3 +182,8 @@ label{
 tags-input .tags .tag-item{
     background: #f1f1f1;
 }
+.parents-msg{
+    position: relative;
+    top: 8px;
+    left: 7px;
+}
