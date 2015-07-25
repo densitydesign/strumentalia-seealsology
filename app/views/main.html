@@ -30,16 +30,15 @@
 
 
                     </div>
+
                     <div class="row">
                         <div class="col-md-12">
                             <div ng-show="alert" class="alert alert-warning" role="alert">Ouch. There is a mistake</div>
                         </div>
                     </div>
-
-
-
                 </div>
             </div>
+
             <div class="row">
                 <div class="col-md-2">
                     <div class="form-group">
@@ -56,6 +55,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="col-md-10">
                     <div class="form-group">
                         <label>Stop words (press enter or separate the works with a comma)</label><span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
@@ -64,14 +64,13 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
+
+            <div class="row" id="crawl-button">
                 <div class="col-md-12">
                     <button ng-show="!queue.length" type="button" ng-click="update()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
                     <div style="margin:0" ng-show="!!queue.length"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} pages resolved</div>
                 </div>
             </div>
-
-
         </div>
 
         <div ng-show="nodes.length" class="results col-md-8">

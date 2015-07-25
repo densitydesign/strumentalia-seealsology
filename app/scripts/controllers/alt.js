@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('wikiDiverApp')
-    .controller('AltCtrl', function ($scope, $http, $log, $timeout, $interval) {
+    .controller('AltCtrl', function ($scope, $http, $log, $timeout, $interval, $window) {
         var regex = /en\.wikipedia\.org\/wiki\/.+/; // regex to match candidates
 
         $scope.stopWords = [
@@ -76,6 +76,10 @@ angular.module('wikiDiverApp')
                 $log.debug('valid wikipedia pages:',validPages, '/', listOfPages, 'n. error pages:', errors.length);
 
                 if (!errors.length){
+                    $timeout(function(){
+                        $window.scrollTo(0, document.getElementById('crawl-button').offsetTop - 12);
+                    }, 50);
+
                     validPages.forEach(function(e){
                         console.log('input', JSON.stringify(e));
                         getRelatives(e, 0, true);
