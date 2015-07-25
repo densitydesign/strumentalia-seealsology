@@ -67,8 +67,8 @@
 
             <div class="row" id="crawl-button">
                 <div class="col-md-12">
-                    <button ng-show="!queue.length" type="button" ng-click="startCrawl()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
-                    <div style="margin:0" ng-show="!!queue.length"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} pages resolved</div>
+                    <button ng-show="!(queue.length || running)" type="button" ng-click="startCrawl()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
+                    <div style="margin:0" ng-show="queue.length || running"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} pages resolved</div>
                 </div>
             </div>
         </div>
@@ -110,7 +110,7 @@
                         <li><a ng-click="downloadCSV()" href="#">TSV</a></li>
                         <li><a ng-click="downloadGEXF()" href="#">GEXF</a></li>
                     </ul>
-                    <span class="parents-msg" ng-show="getParents && resolved && resolved == pending && queue.length">still resolving {{queue.length}} parents...</span>
+                    <span class="parents-msg" ng-show="getParents && resolved && resolved == pending && parentsPending">still resolving {{parentsPending}} parents...</span>
                 </div>
 
                 <div class="notFound">
