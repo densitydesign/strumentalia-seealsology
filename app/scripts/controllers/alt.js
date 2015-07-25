@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('wikiDiverApp')
-    .controller('AltCtrl', function ($scope, $http, $log, $timeout) {
+    .controller('AltCtrl', function ($scope, $http, $log, $timeout, $interval) {
         var regex = /en\.wikipedia\.org\/wiki\/.+/; // regex to match candidates
 
         $scope.stopWords = [
@@ -21,65 +21,54 @@ angular.module('wikiDiverApp')
 
         $scope.depth = 2;
         $scope.getParents = true;
-        $scope.qarr = [];
-        $scope.res = [];
-        $scope.notFound = [];
-        $scope.stopped = [];
-        $scope.edges = [];
-        $scope.nodes = [];
-        $scope.pending = 0;
-        $scope.resolved = 0;
-        $scope.parentsPending = 0;
-        $scope.parentsResolved = 0;
-        $scope.cacheLinks = {};
+        $scope.maxQueries = 15;
+
+        $scope.init = function(){
+            $scope.notFound = [];
+            $scope.stopped = [];
+            $scope.nodes = [];
+            $scope.edges = [];
+            $scope.pending = 0;
+            $scope.resolved = 0;
+            $scope.queue = [];
+            $scope.running = 0;
+        };
+        $scope.init();
 
         function onlyUnique(value, index, self) {
             return self.indexOf(value) === index;
         }
 
-        $scope.update = function () {
-            $log.debug('starting crawling for', $scope.query.split('\n').length, 'pages')
+        $scope.update = function() {
+            $log.debug('starting crawling for', $scope.query.split('\n').length, 'pages');
             $scope.alert = false;
-            $scope.download = false;
-            $scope.notFound = [];
-            $scope.stopped = [];
-            $scope.nodes = [];
-            $scope.edges = [];
-            $scope.res = [];
-            $scope.pending = 0;
-            $scope.resolved = 0;
-            $scope.parentsPending = 0;
-            $scope.parentsResolved = 0;
+            $scope.init();
+            $scope.doneParents = {};
+            $scope.cacheLinks = {};
+            $scope.edgesIndex = {};
 
             if ($scope.query.trim() !== '') {
                 var errors = [],
                     listOfPages = $scope.query.split('\n'),
-                    validPages  = [];
+                    validPages = [];
 
                 // check for integrity
                 validPages = listOfPages.filter(function(d) {
-                    if(d.trim() == '')
-                        return false;
+                    if (d.trim() == '') return false;
 
                     $log.info('checking', d, regex.test(d)? 'is a wikipedia page': 'is not a wiki page ...');
 
-                    if(regex.test(d))
-                        return d;
-                    else
-                        errors.push(d);
+                    if (regex.test(d)) return d;
+                    else errors.push(d);
                 });
 
                 $log.debug('valid wikipedia pages:',validPages, '/', listOfPages, 'n. error pages:', errors.length);
 
-                if(!errors.length) {
-                    validPages.forEach(function (e, i) {
+                if (!errors.length){
+                    validPages.forEach(function(e){
                         console.log("input", JSON.stringify(e));
-                        $scope.pending++;
-                        var ret = getRelatives(e, 0, $scope.res);
-
-                        if (ret === null) console.log("error");
+                        getRelatives(e, 0, true);
                     })
-                    $scope.download = true;
                 } else {
                     $log.error('Not valid wikipedia pages: ', errors);
                     $scope.alert = true;
@@ -91,19 +80,18 @@ angular.module('wikiDiverApp')
         }
 
         function downloadPageSeeAlsoSection(pageName, section, callback){
-
             var id = pageName + "/" + section;
-            if (!$scope.cacheLinks[id]){
 
+            if (!$scope.cacheLinks[id]){
               $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageName +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK')
                 .success(function(links){
-
                     var goodPages = [];
                     parseSection(links).forEach(function(d){
                         var skip = false;
-                        $scope.stopWords.forEach(function(a,b){
+                        $scope.stopWords.forEach(function(a){
                             if(d.toLowerCase().indexOf(a.text)>=0){
-                                if($scope.stopped.indexOf(d)==-1) $scope.stopped.push(d);
+                                if($scope.stopped.indexOf(d)==-1)
+                                    $scope.stopped.push(d);
                                 skip = true;
                             }
                         })
@@ -118,163 +106,181 @@ angular.module('wikiDiverApp')
         }
 
         function downloadPageSeeAlsoLinks(pageName, callback, updateResolved){
-
             $http.jsonp('http://en.wikipedia.org/w/api.php?action=parse&page=' + pageName + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK')
-              .success(function (data) {
-
+              .success(function(data){
                 if(data.parse===null || !data.parse) return;
 
                 var section = null;
                 data.parse.sections.forEach(function(e){
                     if (e.line === "See also") section = e.index;
-                })
+                });
 
-                if (section !== null) downloadPageSeeAlsoSection(pageName, section, callback);
-                else if($scope.notFound.indexOf(decodeURIComponent(pageName))==-1 && updateResolved) $scope.notFound.push(decodeURIComponent(pageName));
+                if (section !== null)
+                    downloadPageSeeAlsoSection(pageName, section, callback);
+                else if($scope.notFound.indexOf(decodeURIComponent(pageName))==-1 && updateResolved)
+                    $scope.notFound.push(decodeURIComponent(pageName));
 
               })
               .finally(function(){
                 if (updateResolved) $scope.resolved++;
-                else $scope.parentsResolved++;
+                $scope.running--;
               });
         }
 
-        function addNode(pageName, level){
+        function addNode(pageName, level, seed){
             var existingNode = $scope.nodes.filter(function(e){return e.name===pageName});
-            if (!existingNode.length)
+            if (!existingNode.length){
                 $scope.nodes.push({
-                  name: pageName,
-                  level: level
+                    name: pageName,
+                    level: level,
+                    seed: !!seed
                 });
-            else existingNode[0].level = Math.min(level, existingNode[0].level);
+            } else existingNode[0].level = Math.min(level, existingNode[0].level);
         }
- 
-        var getRelatives = function(line, ind, rec){
 
+        var addEdge = function(source, target, ind){
+            addNode(source, ind-1);
+            addNode(target, ind);
+
+            var edgeId = source+"->"+target;
+            if ($scope.edgesIndex[edgeId]) return;
+            $scope.edgesIndex[edgeId] = true;
+            $scope.edges.push({source: source, target: target, index: ind});
+        };
+
+        var getRelatives = function(line, ind, seed){
+            $scope.pending++;
             var name = "";
             var rgx = /wiki\/(.+)/g;
-            if (ind == 0) {
+            if (seed){
                 name = rgx.exec(line)[1];
-                $scope.nodes.push({name:decodeURIComponent(name).replace(/_/g, " "),level:0});
+                addNode(decodeURIComponent(name).replace(/_/g, " "), 0, seed);
             } else name = encodeURIComponent(line.name);
-            getSons(name, ind, rec);
-            if ($scope.getParents)
-                getParents(name, ind, rec);
+            $scope.queue.unshift({method: getSons, args: [name, ind]});
+            if ($scope.getParents) getParents(name, ind);
         }
 
-        var getSons = function (name, ind, rec) {
-
+        var getSons = function(name, ind){
             var sons = [];
 
             downloadPageSeeAlsoLinks(name, function(links){
-
-                links.forEach(function(d) {
-                    addNode(d, ind+1);
-                    $scope.edges.push({source: decodeURIComponent(name).replace(/_/g, " "), target: d, index: ind + 1});
-                    sons.push({name: d, index: ind + 1});
+                links.forEach(function(d){
+                    addEdge(decodeURIComponent(name).replace(/_/g, " "), d, ind+1);
+                    sons.push({name: d, index: ind+1});
                 })
 
-                if(ind == 0) {
-                    var obj = {};
-                    obj.name = decodeURIComponent(name).replace(/_/g, " ");
-                    obj.index = ind;
-                    obj.seed = true;
-                    obj.sons = sons;
-                    rec.push(obj);
-                } else rec.sons = sons;
-
-                if (ind + 1 < $scope.depth) {
-                    $scope.pending += sons.length;
-                    sons.forEach(function (m, y) {
-                        m.sons = []
-                        getRelatives(m, ind + 1, m);
-                    })
+                if (ind+1 < $scope.depth){
+                    sons.forEach(function(m){
+                        getRelatives(m, ind + 1);
+                    });
                 }
             }, true);
         }
 
-        var getParents = function (name, ind, rec) {
+        var getParents = function(name, ind){
+            if ($scope.doneParents[name]) return;
+            $scope.doneParents[name] = true;
 
             $http.jsonp('http://en.wikipedia.org/w/api.php?action=query&bltitle=' + name + '&blnamespace=0&list=backlinks&blredirect&blfilterredir=nonredirects&bllimit=250&format=json&callback=JSON_CALLBACK')
               .success(function(data){
-
                 if(data.query===null || !data.query.backlinks) return null;
 
-                $scope.parentsPending += data.query.backlinks.length;
-                data.query.backlinks.forEach(function(parentPage){
-                    var parentName = parentPage.title;
-                    downloadPageSeeAlsoLinks(parentName, function(links){
-                        var found = false;
-                        links.forEach(function(l){
-                            if (l.toLowerCase() === decodeURIComponent(name).replace(/_/g, " ").toLowerCase())
-                                found = true;
-                        });
-                        if (found){
-                            addNode(parentName, ind-1);
-                            $scope.edges.push({source: parentName, target: decodeURIComponent(name).replace(/_/g, " "), index: ind});
+                var links = data.query.backlinks.filter(function(l){
+                    var keep = true;
+                    $scope.stopWords.forEach(function(a){
+                        if(l.title.toLowerCase().indexOf(a.text)>=0){
+                            if($scope.stopped.indexOf(l.title)==-1)
+                                $scope.stopped.push(l.title);
+                            keep = false;
+                            return;
                         }
                     });
+                    return keep;
                 });
+                links.forEach(function(parentPage){
+                    $scope.queue.push({method: validateParent, args: [name, parentPage, ind]});
+                });
+
               });
         }
                     
-        var parseSection=function(obj) {
+        var validateParent = function(pageName, parentPage, ind){
+            var parentName = parentPage.title;
+
+            downloadPageSeeAlsoLinks(parentName, function(links){
+                var found = false;
+                links.forEach(function(l){
+                    if (l.toLowerCase() === decodeURIComponent(pageName).replace(/_/g, " ").toLowerCase())
+                        found = true;
+                });
+
+                if (found)
+                    addEdge(parentName, decodeURIComponent(pageName).replace(/_/g, " "), ind);
+            });
+        }
+
+        var parseSection = function(obj){
             var o = obj.query.pages[Object.keys(obj.query.pages)[0]].revisions[0]['*'];
             var regex = /\[\[(.*?)\]\]/g;
 
             var matches, output = [];
-            while (matches = regex.exec(o)) {
+            while (matches = regex.exec(o))
                 output.push(matches[1].split("|")[0]);
-            }
             return output;
-
         }
 
 
-        $scope.downloadJSON = function() {
+        $scope.downloadJSON = function(){
             var json = angular.toJson({nodes:$scope.nodes,edges:$scope.edges});
-            var blob = new Blob([json], { type: "data:text/json;charset=utf-8" });
-            saveAs(blob, "data.json")
+            var blob = new Blob([json], {type: "data:text/json;charset=utf-8" });
+            saveAs(blob, "seealsology-data.json");
         };
 
-        $scope.downloadCSV = function() {
+        $scope.downloadCSV = function(){
 
             var csvtxt = "source\ttarget\tdepth\n";
-            $scope.edges.forEach(function(e,i){
+            $scope.edges.forEach(function(e){
                 csvtxt+=(e.source+"\t"+ e.target+"\t"+e.index+"\n");
-            })
+            });
             var blob = new Blob([csvtxt], { type: "data:text/csv;charset=utf-8" });
-            saveAs(blob, "data.tsv")
+            saveAs(blob, "seealsology-data.tsv");
         };
 
-        $scope.downloadGEXF = function() {
+        $scope.downloadGEXF = function(){
             var gexfDoc = gexf.create({defaultEdgeType: 'directed'});
 
             gexfDoc.addNodeAttribute({id: 'level', title: 'Level', type: 'integer'});
             gexfDoc.addNodeAttribute({id: 'seed', title: 'Seed', type: 'boolean'});
 
-            $scope.nodes.forEach(function(n) {
+            $scope.nodes.forEach(function(n){
                 gexfDoc.addNode({
                     id: n.name,
                     label: n.name,
                     attributes: {
                         level: n.level,
-                        seed: !!n.seed
+                        seed: n.seed
                     }
                 });
             });
 
-            $scope.edges.forEach(function(e) {
+            $scope.edges.forEach(function(e){
                 gexfDoc.addEdge({source: e.source, target: e.target});
             });
 
             var blob = new Blob([gexfDoc.serialize()], { type: "data:application/xml+gexf;charset=utf-8" });
-            saveAs(blob, "data.gexf")
+            saveAs(blob, "seealsology-data.gexf");
         };
 
-        $scope.$watchCollection('[resolved, parentsResolved]', function(){
-            $log.debug("resolved", $scope.resolved, "pending", $scope.pending, "parents", $scope.parentsResolved+"/"+$scope.parentsPending);
-        })
+        $interval(function(){
+            while ($scope.queue.length > 0 && $scope.running < $scope.maxQueries){
+                var task = $scope.queue.shift();
+                $scope.running++;
+                task.method(task.args[0], task.args[1], task.args[2]);
+            }
+        }, 100);
+
+        $interval(function(){console.log("Queue:", $scope.queue.length, "Running:", $scope.running, "Resolved:", $scope.resolved, "Pending:", $scope.pending)}, 5000);
+
     });
 
 

@@ -66,16 +66,15 @@
             </div>
             <div class="row">
                 <div class="col-md-12">
-                    <button ng-show="resolved == pending && parentsResolved == parentsPending" type="button" ng-click="update()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
-                    <div style="margin:0" ng-show="resolved != pending || parentsResolved != parentsPending"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} pages resolved</div>
+                    <button ng-show="!queue.length" type="button" ng-click="update()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
+                    <div style="margin:0" ng-show="!!queue.length"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} pages resolved</div>
                 </div>
             </div>
 
 
         </div>
 
-
-        <div ng-show="res.length"class="results col-md-8">
+        <div ng-show="nodes.length" class="results col-md-8">
             <div class="box">
                 <label>Results preview</label>
                 <table class="table table-striped">
@@ -95,12 +94,12 @@
             </div>
         </div>
 
-        <div ng-show ="notFound.length || stopped.length" class="report col-md-4">
+        <div ng-show="!!resolved" class="report col-md-4">
             <div class="box">
 
                 <div class="btn-group">
-                    <button ng-disabled="resolved != pending || parentsResolved != parentsPending" type="button" class="btn btn-success btn-lg">Download</button>
-                    <button ng-disabled="resolved != pending || parentsResolved != parentsPending" type="button" class="btn btn-success dropdown-toggle btn-lg " data-toggle="dropdown" aria-expanded="false">
+                    <button ng-disabled="resolved != pending" type="button" class="btn btn-success btn-lg">Download</button>
+                    <button ng-disabled="resolved != pending" type="button" class="btn btn-success dropdown-toggle btn-lg " data-toggle="dropdown" aria-expanded="false">
                         <span class="caret"></span>
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>
@@ -109,40 +108,24 @@
                         <li><a ng-click="downloadCSV()" href="#">TSV</a></li>
                         <li><a ng-click="downloadGEXF()" href="#">GEXF</a></li>
                     </ul>
-                    <span class="parents-msg" ng-show="getParents && (parentsResolved != parentsPending)">still resolving parents...</span>
+                    <span class="parents-msg" ng-show="getParents && resolved && resolved == pending && queue.length">still resolving {{queue.length}} parents...</span>
                 </div>
 
-                <!--  <button type="button" ng-show="download" class="btn btn-info" ng-click="downloadJSON()">Download JSON</button>
-                  <button type="button" ng-show="download" class="btn btn-info" ng-click="downloadCSV()">Download CSV</button>-->
-
                 <div class="notFound">
-                    <div class="lbl"><b>Not found (See also section missing, or bad page name)</b></div>
+                    <div ng-show="!!notFound.length" class="lbl"><b>Not found (See also section missing, or bad page name)</b></div>
                     <ul>
                         <li ng-repeat="page in notFound track by $index">{{page}}</li>
                     </ul>
                 </div>
                 <br/>
 
-                <div class="stopped">
+                <div ng-show="!!stopped.length" class="stopped">
                     <div class="lbl"><b>Stopped from stopWord list</b></div>
                     <ul>
                         <li ng-repeat="page in stopped track by $index">{{page}}</li>
                     </ul>
                 </div>
-              <!--  <div class="repeated">
-                    <div class="lbl"><b>Repeated pages</b></div>
-                    <ul>
-                        <li ng-repeat="page in repeated track by $index">{{page}}</li>
-                    </ul>
-                </div>-->
             </div>
         </div>
-
-
     </div>
 </section>
-
-
-
-
-
