@@ -22,6 +22,8 @@ angular.module('wikiDiverApp')
         $scope.depth = 2;
         $scope.getParents = true;
         $scope.maxQueries = 15;
+        $scope.sigma = undefined;
+        $scope.colors = ['#69CD4D', '#68CB9B', '#484460', '#8B86C9', '#B99638', '#4B5D32', '#BCC58B', '#484460', '#96B9C3'];
 
         $scope.init = function(){
             $scope.notFound = [];
@@ -42,6 +44,19 @@ angular.module('wikiDiverApp')
             $scope.doneParents = {};
             $scope.cacheLinks = {};
             $scope.edgesIndex = {};
+            if ($scope.sigma) $scope.sigma.kill();
+            $scope.sigma = new sigma({
+                container: 'sigma',
+                settings: {
+                    labelThreshold: 5,
+                    singleHover: true,
+                    minNodeSize: 2
+                }
+            }).startForceAtlas2({
+                adjustSizes: true,
+                strongGravityMode: true,
+                slowDown: 20
+            });
 
             if ($scope.query.trim() !== '') {
                 var errors = [],
@@ -135,6 +150,15 @@ angular.module('wikiDiverApp')
                     level: level,
                     seed: !!seed
                 });
+                $scope.sigma.graph.addNode({
+                    id: pageName,
+                    label: pageName,
+                    x: Math.random(),
+                    y: Math.random(),
+                    size: 1,
+                    color: $scope.colors[seed ? 0 : level+2]
+                });
+            }
         }
 
         function addEdge(source, target, ind){
@@ -146,6 +170,14 @@ angular.module('wikiDiverApp')
             $scope.edgesIndex[edgeId] = true;
             $scope.edges.push({source: source, target: target, index: ind});
 
+            $scope.sigma.graph.addEdge({
+                id: edgeId,
+                source: source,
+                target: target,
+                color: '#ccc'
+            });
+            $scope.sigma.graph.nodes(source).size = $scope.sigma.graph.degree(source);
+            $scope.sigma.graph.nodes(target).size = $scope.sigma.graph.degree(target);
         }
 
         function getRelatives(line, ind, seed){
@@ -164,10 +196,12 @@ angular.module('wikiDiverApp')
             var sons = [];
 
             downloadPageSeeAlsoLinks(name, function(links){
+                $scope.sigma.killForceAtlas2();
                 links.forEach(function(d){
                     addEdge(decodeURIComponent(name).replace(/_/g, ' '), d, ind+1);
                     sons.push({name: d, index: ind+1});
                 });
+                $scope.sigma.startForceAtlas2();
 
                 if (ind+1 < $scope.depth){
                     sons.forEach(function(m){
@@ -214,8 +248,11 @@ angular.module('wikiDiverApp')
                         found = true;
                 });
 
-                if (found)
+                if (found){
+                    $scope.sigma.killForceAtlas2();
                     addEdge(parentName, decodeURIComponent(pageName).replace(/_/g, ' '), ind);
+                    $scope.sigma.startForceAtlas2();
+                }
             });
         }
 
