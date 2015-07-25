@@ -67,7 +67,7 @@
 
             <div class="row" id="crawl-button">
                 <div class="col-md-12">
-                    <button ng-show="!queue.length" type="button" ng-click="update()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
+                    <button ng-show="!queue.length" type="button" ng-click="startCrawl()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
                     <div style="margin:0" ng-show="!!queue.length"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} pages resolved</div>
                 </div>
             </div>
