@@ -322,6 +322,15 @@ angular.module('wikiDiverApp')
             }
         }, 100);
 
+        $scope.$watch(function(){
+            return $scope.queue.length;
+        }, function(n, o){
+            if (n !== o && !n)
+                $timeout(function(){
+                    $scope.sigma.stopForceAtlas2();
+                }, parseInt(Math.sqrt(10 * $scope.nodes.length) * 100));
+        });
+
         //$interval(function(){console.log('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending)}, 5000);
 
     });
