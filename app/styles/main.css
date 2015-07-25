@@ -187,6 +187,14 @@ tags-input .tags .tag-item{
     top: 8px;
     left: 7px;
 }
+a.discreet{
+    text-decoration: none;
+    color: #333;
+}
+a.discreet:hover{
+    text-decoration: underline;
+    color: #151515;
+}
 #sigma{
     width: 100%;
     height: 450px;

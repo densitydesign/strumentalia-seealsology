@@ -53,10 +53,15 @@ angular.module('wikiDiverApp')
                     singleHover: true,
                     minNodeSize: 2
                 }
-            }).startForceAtlas2({
+            }).configForceAtlas2({
                 adjustSizes: true,
                 strongGravityMode: true,
                 slowDown: 20
+            });
+
+            // Links to wikipages on click graph nodes
+            $scope.sigma.bind('clickNode', function(e) {
+                $window.open($scope.wikiLink(e.data.node.id), '_blank');
             });
 
             // Check query
@@ -99,6 +104,15 @@ angular.module('wikiDiverApp')
             }
         };
 
+        function linkToTitle(t){
+            return decodeURIComponent(t).replace(/_/g, ' ');
+        }
+        function titleToLink(t){
+            return encodeURIComponent(t.replace(/ /g, '_'));
+        }
+        $scope.wikiLink = function(t){
+            return "http://en.wikipedia.org/wiki/" + titleToLink(t);
+        };
 
         // Collect links from a page's section content
         function parseSection(obj){
@@ -114,15 +128,14 @@ angular.module('wikiDiverApp')
         }
 
         // Grab a SeeAlso section's links
-        function downloadPageSeeAlsoSection(pageName, section, callback){
-            var id = pageName + '/' + section;
+        function downloadPageSeeAlsoSection(pageLink, section, callback){
+            var id = pageLink + '/' + section;
 
             // Use existing cache
-            if (!$scope.cacheLinks[id]){
             if ($scope.cacheLinks[id])
                 callback($scope.cacheLinks[id]);
             // Or grab page's SeeAlso section from API
-            else $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageName +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK')
+            else $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageLink +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK')
                 .success(function(links){
                     var goodPages = [];
                     parseSection(links).forEach(function(d){
@@ -157,8 +170,8 @@ angular.module('wikiDiverApp')
 
                 if (section !== null)
                     downloadPageSeeAlsoSection(pageLink, section, callback);
-                else if ($scope.notFound.indexOf(decodeURIComponent(pageLink)) === -1 && updateResolved)
-                    $scope.notFound.push(decodeURIComponent(pageLink));
+                else if ($scope.notFound.indexOf(linkToTitle(pageLink)) === -1 && updateResolved)
+                    $scope.notFound.push(linkToTitle(pageLink));
 
             })
             .finally(function(){
@@ -212,26 +225,26 @@ angular.module('wikiDiverApp')
         }
 
         // Add a page to the corpus and find its parents and sons
-        function getRelatives(line, ind, seed){
+        function getRelatives(page, ind, seed){
             $scope.pending++;
-            var name = '',
+            var link = '',
                 rgx = /wiki\/(.+)/g;
             if (seed){
-                name = rgx.exec(line)[1];
-                addNode(decodeURIComponent(name).replace(/_/g, ' '), 0, seed);
-            } else name = encodeURIComponent(line.name);
-            $scope.queue.unshift({method: getSons, args: [name, ind]});
-            if ($scope.getParents) getParents(name, ind);
+                link = rgx.exec(page)[1];
+                addNode(linkToTitle(link), 0, seed);
+            } else link = titleToLink(page.name);
+            $scope.queue.unshift({method: getSons, args: [link, ind]});
+            if ($scope.getParents) getParents(link, ind);
         }
 
         // Get a page's sons
-        function getSons(name, ind){
+        function getSons(page, ind){
             var sons = [];
 
-            downloadPageSeeAlsoLinks(name, function(links){
+            downloadPageSeeAlsoLinks(page, function(links){
                 $scope.sigma.killForceAtlas2();
                 links.forEach(function(d){
-                    addEdge(decodeURIComponent(name).replace(/_/g, ' '), d, ind+1);
+                    addEdge(linkToTitle(page), d, ind+1);
                     sons.push({name: d, index: ind+1});
                 });
                 $scope.sigma.startForceAtlas2();
@@ -245,12 +258,12 @@ angular.module('wikiDiverApp')
         }
 
         // Get a page's parents
-        function getParents(name, ind){
-            if ($scope.doneParents[name]) return;
-            $scope.doneParents[name] = true;
+        function getParents(page, ind){
+            if ($scope.doneParents[page]) return;
+            $scope.doneParents[page] = true;
 
             // Get backlinks to the page from the API
-            $http.jsonp('http://en.wikipedia.org/w/api.php?action=query&bltitle=' + name + '&blnamespace=0&list=backlinks&blredirect&blfilterredir=nonredirects&bllimit=250&format=json&callback=JSON_CALLBACK')
+            $http.jsonp('http://en.wikipedia.org/w/api.php?action=query&bltitle=' + page + '&blnamespace=0&list=backlinks&blredirect&blfilterredir=nonredirects&bllimit=250&format=json&callback=JSON_CALLBACK')
               .success(function(data){
                 if(data.query === null || !data.query.backlinks) return null;
 
@@ -268,26 +281,26 @@ angular.module('wikiDiverApp')
                     return keep;
                 });
                 links.forEach(function(parentPage){
-                    $scope.queue.push({method: validateParent, args: [name, parentPage, ind]});
+                    $scope.queue.push({method: validateParent, args: [page, parentPage, ind]});
                 });
 
               });
         }
                     
         // Keep only parent links coming from SeeAlso sections
-        function validateParent(pageName, parentPage, ind){
+        function validateParent(pageLink, parentPage, ind){
             var parentName = parentPage.title;
 
             downloadPageSeeAlsoLinks(parentName, function(links){
                 var found = false;
                 links.forEach(function(l){
-                    if (l.toLowerCase() === decodeURIComponent(pageName).replace(/_/g, ' ').toLowerCase())
+                    if (l.toLowerCase() === linkToTitle(pageLink).toLowerCase())
                         found = true;
                 });
 
                 if (found){
                     $scope.sigma.killForceAtlas2();
-                    addEdge(parentName, decodeURIComponent(pageName).replace(/_/g, ' '), ind);
+                    addEdge(parentName, linkToTitle(pageLink), ind);
                     $scope.sigma.startForceAtlas2();
                 }
             });
@@ -358,7 +371,6 @@ angular.module('wikiDiverApp')
         //$interval(function(){console.log('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending)}, 5000);
 
 /* TODO
-    - add link to wikipage from graph
     - add localStorage cache
     - add colors legend + zoom/stop buttons
     - viz fields in gexf

@@ -87,7 +87,9 @@
                     </thead>
                     <tbody>
                     <tr ng-repeat="entity in edges">
-                        <td>{{entity.source}}</td><td>{{entity.target}}</td><td>{{entity.index}}</td>
+                        <td><a class="discreet" target="_blank" href="{{wikiLink(entity.source)}}">{{entity.source}}</a></td>
+                        <td><a class="discreet" target="_blank" href="{{wikiLink(entity.target)}}">{{entity.target}}</a></td>
+                        <td>{{entity.index}}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -114,7 +116,7 @@
                 <div class="notFound">
                     <div ng-show="!!notFound.length" class="lbl"><b>Not found (See also section missing, or bad page name)</b></div>
                     <ul>
-                        <li ng-repeat="page in notFound track by $index">{{page}}</li>
+                        <li ng-repeat="page in notFound track by $index"><a class="discreet" target="_blank" href="{{wikiLink(page)}}">{{page}}</a></li>
                     </ul>
                 </div>
                 <br/>
@@ -122,7 +124,7 @@
                 <div ng-show="!!stopped.length" class="stopped">
                     <div class="lbl"><b>Stopped from stopWord list</b></div>
                     <ul>
-                        <li ng-repeat="page in stopped track by $index">{{page}}</li>
+                        <li ng-repeat="page in stopped track by $index"><a class="discreet" target="_blank" href="{{wikiLink(page)}}">{{page}}</a></li>
                     </ul>
                 </div>
             </div>
