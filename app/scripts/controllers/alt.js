@@ -114,7 +114,6 @@ angular.module('wikiDiverApp')
                     }, 50);
 
                     validPages.forEach(function(e){
-                        console.log('input', JSON.stringify(e));
                         getRelatives(e, 0, true);
                     });
                 }
@@ -194,11 +193,17 @@ angular.module('wikiDiverApp')
                         }
                         cache(pageLink, links);
                         callback(filterStopWords(links));
+                    }).error(function(e){
+                        $log.error('Could not get content of SeeAlso section from API for', pageLink, e);
+                        notFound(pageLink, updateResolved);
                     });
                 } else {
                     cache(pageLink, '#NOT-FOUND#');
                     notFound(pageLink, updateResolved);
                 }
+              }).error(function(e){
+                $log.error('Could not get sections from API for', pageLink, e);
+                notFound(pageLink, updateResolved);
               });
         }
 
@@ -309,7 +314,8 @@ angular.module('wikiDiverApp')
                         }]});
                     }
                 });
-
+            }).error(function(e){
+                $log.error('Could not get backlinks from API for', page, e);
             });
         }
                     
@@ -390,7 +396,7 @@ angular.module('wikiDiverApp')
         );
 
         // Debug
-        //$interval(function(){console.log('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending);}, 5000);
+        //$interval(function(){$log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending);}, 5000);
 
 /* TODO
     - add stop button
