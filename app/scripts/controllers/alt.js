@@ -397,12 +397,30 @@ angular.module('wikiDiverApp')
             }
         );
 
+        // Zoom buttons
+        $scope.zoomSigma = function(positiveZoom){
+            var cam = $scope.sigma.cameras[0];
+            sigma.misc.animation.camera(
+                cam,
+                { ratio: cam.ratio * (positiveZoom ? 1/1.5 : 1.5) },
+                { duration: 150 }
+            );
+        };
+        $scope.recenterSigma = function(){
+            sigma.misc.animation.camera(
+                $scope.sigma.cameras[0],
+                {x: 0, y: 0, angle: 0, ratio: 1},
+                { duration: 150 }
+            );
+        };
+
+
         // Debug
         //$interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 2000);
 
 /* TODO
     - add stop button
-    - add colors legend + zoom/stop buttons
+    - add colors legend
     - check language, validate and adapt
     - append seeds afterwards
 */
