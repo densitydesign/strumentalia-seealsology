@@ -83,6 +83,17 @@ angular.module('wikiDiverApp')
                 slowDown: 20
             });
 
+            // Draw sigma legend
+            $scope.colors.forEach(function(c, i){
+                $('.sigma-legend').append(
+                  '<span>' +
+                     '<div style="background-color: ' + c + '"></div>' +
+                    '&nbsp;&nbsp;' + (i ? 'level ' + (i-2) : 'seeds') +
+                  '</span>'
+                );
+            });
+
+
             // Links to wikipages on click graph nodes
             $scope.sigma.bind('clickNode', function(e) {
                 $window.open($scope.wikiLink(e.data.node.id), '_blank');
@@ -419,9 +430,8 @@ angular.module('wikiDiverApp')
         //$interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 2000);
 
 /* TODO
-    - add stop button
-    - add colors legend
     - check language, validate and adapt
+    - add stop button
     - append seeds afterwards
 */
 
