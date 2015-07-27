@@ -21,6 +21,7 @@ angular.module('wikiDiverApp')
         $scope.depth = 2;
         $scope.getParents = true;
         $scope.maxQueries = 15;
+        $scope.cacheDuration = 86400;
         $scope.sigma = undefined;
         $scope.colors = ['#69CD4D', '#68CB9B', '#484460', '#8B86C9', '#B99638', '#4B5D32', '#BCC58B', '#484460', '#96B9C3'];
 
@@ -39,7 +40,7 @@ angular.module('wikiDiverApp')
         $scope.init();
 
         $scope.cacheLinks = {};
-        var yest = Math.floor(new Date() / 1000) - 86400;
+        var yest = Math.floor(new Date() / 1000) - $scope.cacheDuration;
         try {
             Object.keys(localStorage).forEach(function(k){
                 if (k.indexOf('seeAlsology-update-') !== 0) return;
