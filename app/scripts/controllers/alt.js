@@ -20,7 +20,7 @@ angular.module('wikiDiverApp')
         $scope.query = '';//http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil\n';
         $scope.depth = 2;
         $scope.getParents = true;
-        $scope.maxQueries = 15;
+        $scope.maxQueries = 20;
         $scope.cacheDuration = 86400;
         $scope.sigma = undefined;
         $scope.colors = ['#69CD4D', '#68CB9B', '#484460', '#8B86C9', '#B99638', '#4B5D32', '#BCC58B', '#484460', '#96B9C3'];
@@ -54,7 +54,6 @@ angular.module('wikiDiverApp')
         } catch(e){}
 
         function cache(pageLink, links){
-            if (links === '#NOT-FOUND#') return;
             links = links || [];
             $scope.cacheLinks[pageLink] = links;
             try {
@@ -153,6 +152,7 @@ angular.module('wikiDiverApp')
 
         // Declare when page not found or section "SeeAlso" misses
         function notFound(pageLink, updateResolved){
+            cache(pageLink, ['#NOT-FOUND#']);
             if ($scope.notFound.indexOf(linkToTitle(pageLink)) === -1 && updateResolved)
                 $scope.notFound.push(linkToTitle(pageLink));
             if (updateResolved) $scope.resolved++;
@@ -164,47 +164,43 @@ angular.module('wikiDiverApp')
         function downloadPageSeeAlsoLinks(pageLink, callback, updateResolved){
             // Use existing cache
             if ($scope.cacheLinks[pageLink]) {
-                if ($scope.cacheLinks[pageLink] === '#NOT-FOUND#')
+                if ($scope.cacheLinks[pageLink] === ['#NOT-FOUND#'])
                     notFound(pageLink, updateResolved);
                 else callback(filterStopWords($scope.cacheLinks[pageLink]));
 
             // or find the page's SeeAlso section from API
             } else $http.jsonp('http://en.wikipedia.org/w/api.php?action=parse&page=' + pageLink + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK')
-              .success(function(data){
-                if (!data.parse)
-                    return notFound(pageLink, updateResolved);
+            .success(function(data){
+                if (!data.parse) return notFound(pageLink, updateResolved);
 
                 var section = null;
                 data.parse.sections.forEach(function(e){
                     if (e.line === 'See also') section = e.index;
                 });
-                if (section !== null){
-                    // Grab page's SeeAlso section from API
-                    $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageLink +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK')
-                    .success(function(linksData){
-                        // Collect links from the section content
-                        var o = linksData.query.pages[Object.keys(linksData.query.pages)[0]].revisions[0]['*'],
-                            regex = /\[\[(.*?)\]\]/g,
-                            matches = regex.exec(o),
-                            links = [];
-                        while (matches){
-                            links.push(matches[1].split('|')[0]);
-                            matches = regex.exec(o);
-                        }
-                        cache(pageLink, links);
-                        callback(filterStopWords(links));
-                    }).error(function(e){
-                        $log.error('Could not get content of SeeAlso section from API for', pageLink, e);
-                        notFound(pageLink, updateResolved);
-                    });
-                } else {
-                    cache(pageLink, '#NOT-FOUND#');
+                if (!section) return notFound(pageLink, updateResolved);
+
+                // Grab page's SeeAlso section from API
+                $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageLink +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK')
+                .success(function(linksData){
+                    // Collect links from the section content
+                    var o = linksData.query.pages[Object.keys(linksData.query.pages)[0]].revisions[0]['*'],
+                        regex = /\[\[(.*?)\]\]/g,
+                        matches = regex.exec(o),
+                        links = [];
+                    while (matches){
+                        links.push(matches[1].split('|')[0]);
+                        matches = regex.exec(o);
+                    }
+                    cache(pageLink, links);
+                    callback(filterStopWords(links));
+                }).error(function(e){
+                    $log.error('Could not get content of SeeAlso section from API for', pageLink, e);
                     notFound(pageLink, updateResolved);
-                }
-              }).error(function(e){
+                });
+            }).error(function(e){
                 $log.error('Could not get sections from API for', pageLink, e);
                 notFound(pageLink, updateResolved);
-              });
+            });
         }
 
         // Add a page to the corpus
@@ -301,7 +297,7 @@ angular.module('wikiDiverApp')
                 })).forEach(function(parentPage){
                     $scope.parentsPending++;
                     var parentLink = titleToLink(parentPage);
-                    if ($scope.cacheLinks[parentLink] && $scope.cacheLinks[parentLink] !== '#NOT-FOUND#') {
+                    if ($scope.cacheLinks[parentLink] && $scope.cacheLinks[parentLink] !== ['#NOT-FOUND#']) {
                         $timeout(function(){
                             validateParentFromLinks(page, parentLink, ind, $scope.cacheLinks[parentLink]);
                             $scope.parentsPending--;
@@ -320,16 +316,12 @@ angular.module('wikiDiverApp')
         }
                     
         // Keep only parent links coming from SeeAlso sections
-        function validateParentFromLinks(pageLink, parentLink, ind, links){
-            var found = false;
-            links.forEach(function(l){
-                if (l.toLowerCase() === linkToTitle(pageLink).toLowerCase())
-                    found = true;
-            });
-
-            if (found){
+        function validateParentFromLinks(page, parentLink, ind, links){
+            var name = linkToTitle(page),
+                check = name.toLowerCase();
+            if (links.some(function(l){ return (l.toLowerCase() === check); })){
                 $scope.sigma.killForceAtlas2();
-                addEdge(linkToTitle(parentLink), linkToTitle(pageLink), ind);
+                addEdge(linkToTitle(parentLink), name, ind);
                 $scope.sigma.startForceAtlas2();
             }
         }
@@ -396,7 +388,7 @@ angular.module('wikiDiverApp')
         );
 
         // Debug
-        //$interval(function(){$log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending);}, 5000);
+        //$interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 2000);
 
 /* TODO
     - add stop button
