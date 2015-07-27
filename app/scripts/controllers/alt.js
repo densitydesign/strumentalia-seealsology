@@ -222,6 +222,8 @@ angular.module('wikiDiverApp')
                     x: Math.random(),
                     y: Math.random(),
                     size: 1,
+                    level: level,
+                    seed: !!seed,
                     color: $scope.colors[seed ? 0 : level+2]
                 });
             }
@@ -349,18 +351,26 @@ angular.module('wikiDiverApp')
             gexfDoc.addNodeAttribute({id: 'level', title: 'Level', type: 'integer'});
             gexfDoc.addNodeAttribute({id: 'seed', title: 'Seed', type: 'boolean'});
 
-            $scope.nodes.forEach(function(n){
+            $scope.sigma.graph.nodes().forEach(function(n){
                 gexfDoc.addNode({
-                    id: n.name,
-                    label: n.name,
+                    id: n.label,
+                    label: n.label,
                     attributes: {
                         level: n.level,
                         seed: n.seed
+                    },
+                    viz: {
+                        color: n.color,
+                        size: $scope.sigma.graph.degree(n.label),
+                        position: {
+                            x: n['read_cam0:x'],
+                            y: -n['read_cam0:y']
+                        }
                     }
                 });
             });
 
-            $scope.edges.forEach(function(e){
+            $scope.sigma.graph.edges().forEach(function(e){
                 gexfDoc.addEdge({source: e.source, target: e.target});
             });
 
@@ -393,7 +403,6 @@ angular.module('wikiDiverApp')
 /* TODO
     - add stop button
     - add colors legend + zoom/stop buttons
-    - viz fields in gexf
     - check language, validate and adapt
     - append seeds afterwards
 */
