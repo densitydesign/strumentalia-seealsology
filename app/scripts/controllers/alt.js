@@ -40,20 +40,25 @@ angular.module('wikiDiverApp')
 
         $scope.cacheLinks = {};
         var yest = Math.floor(new Date() / 1000) - 86400;
-        Object.keys(localStorage).forEach(function(k){
-            if (k.indexOf('seeAlsology-update-') !== 0) return;
-            var p = k.replace('seeAlsology-update-', '');
-            if (localStorage[p] && parseInt(localStorage[k]) < yest){
-                delete localStorage[k];
-                delete localStorage[p];
-            } else $scope.cacheLinks[p] = localStorage['seeAlsology-' + p].split('|');
-        });
+        try {
+            Object.keys(localStorage).forEach(function(k){
+                if (k.indexOf('seeAlsology-update-') !== 0) return;
+                var p = k.replace('seeAlsology-update-', 'seeAlsology-'),
+                    u = p.replace('seeAlsology-', '');
+                if (parseInt(localStorage.getItem(k)) < yest){
+                    localStorage.removeItem(k);
+                    localStorage.removeItem(p);
+                } else $scope.cacheLinks[u] = localStorage.getItem(p).split('|');
+            });
+        } catch(e){}
 
         function cache(pageLink, links){
             links = links || [];
             $scope.cacheLinks[pageLink] = links;
-            localStorage['seeAlsology-' + pageLink] = links.join('|');
-            localStorage['seeAlsology-update-' + pageLink] = Math.floor(new Date() / 1000);
+            try {
+                localStorage.setItem('seeAlsology-' + pageLink, links.join('|'));
+                localStorage.setItem('seeAlsology-update-' + pageLink, Math.floor(new Date() / 1000));
+            } catch(e){}
         }
 
         $scope.startCrawl = function(){
