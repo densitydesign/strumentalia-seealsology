@@ -391,7 +391,7 @@ angular.module('wikiDiverApp')
             while ($scope.queue.length > 0 && $scope.running < $scope.maxQueries){
                 var task = $scope.queue.shift();
                 $scope.running++;
-                task.method(task.args[0], task.args[1], task.args[2]);
+                task.method.apply(null, task.args);
             }
         }, 25);
 
