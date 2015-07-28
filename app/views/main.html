@@ -56,12 +56,15 @@
                     </div>
                 </div>
 
-                <div class="col-md-10">
+                <div class="col-md-9">
                     <div class="form-group">
                         <label>Stop words (press enter or separate the works with a comma)</label><span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
                         <div class="controls">
                             <tags-input placeholder="add a word and press Enter" ng-model="stopWords"></tags-input></div>
                     </div>
+                </div>
+                <div class="col-md-1 clear-cache">
+                    <button ng-disabled="cacheLinksEmpty || parentsPending || queue.length || running" title="For sanity and performance reasons, results are cached in your browser for {{cacheHours}} hours. Click here to reset cache if you feel like results are not in sync with Wikipedia pages" ng-click="clearCache()" class="btn btn-warning btn-sm btn-block">Clear<br>Cache</button>
                 </div>
             </div>
 
