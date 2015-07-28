@@ -84,6 +84,7 @@ angular.module('wikiDiverApp')
             });
 
             // Draw sigma legend
+            $('.sigma-legend').empty();
             $scope.colors.forEach(function(c, i){
                 $('.sigma-legend').append(
                   '<span>' +
