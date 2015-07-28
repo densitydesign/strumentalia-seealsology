@@ -153,7 +153,7 @@ angular.module('wikiDiverApp')
         function filterStopWords(links){
             return links.filter(function(l){
                 if ($scope.stopWords.some(function(s){
-                    return l.toLowerCase().indexOf(s.text) !== -1;
+                    return l.toLowerCase().indexOf(s.text.toLowerCase()) !== -1;
                 })) {
                     if ($scope.stopped.indexOf(l) === -1)
                         $scope.stopped.push(l);
