@@ -70,8 +70,10 @@
 
             <div class="row" id="crawl-button">
                 <div class="col-md-12">
-                    <button ng-show="!(queue.length || running)" type="button" ng-click="startCrawl()" class="btn btn btn-success btn-lg btn-block">Start Crawling</button>
-                    <div style="margin:0" ng-show="queue.length || running"  class="btn btn btn-success btn-lg btn-block">{{resolved}} / {{pending}} pages resolved</div>
+                    <button ng-hide="parentsPending || queue.length || running" ng-click="startCrawl()" class="btn btn-success btn-lg btn-block">Start Crawling</button>
+                    <button ng-show="parentsPending || queue.length || running"  class="btn btn-warning btn-lg btn-block" ng-disabled="true">{{resolved}} / {{pending}} pages resolved
+                        <span ng-show="getParents && parentsPending"> (still resolving {{parentsPending}} parents…)</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -80,13 +82,13 @@
             <div id="sigma"></div>
             <div class="sigma-tools">
               <div class="btn-group-vertical">
-                <button type="button" class="btn btn-link btn-sm" ng-click="zoomSigma(true)">
+                <button class="btn btn-link btn-sm" ng-click="zoomSigma(true)">
                   <span class="glyphicon glyphicon-plus"></span>
                 </button>
-                <button type="button" class="btn btn-link btn-sm" ng-click="zoomSigma(false)">
+                <button class="btn btn-link btn-sm" ng-click="zoomSigma(false)">
                   <span class="glyphicon glyphicon-minus"></span>
                 </button>
-                <button type="button" class="btn btn-link btn-sm" ng-click="recenterSigma()">
+                <button class="btn btn-link btn-sm" ng-click="recenterSigma()">
                   <span class="glyphicon glyphicon-record"></span>
                 </button>
               </div>
@@ -116,9 +118,9 @@
         <div ng-show="!!resolved" class="report col-md-4">
             <div class="box">
 
-                <div class="btn-group">
-                    <button ng-disabled="resolved != pending" type="button" class="btn btn-success btn-lg">Download</button>
-                    <button ng-disabled="resolved != pending" type="button" class="btn btn-success dropdown-toggle btn-lg " data-toggle="dropdown" aria-expanded="false">
+                <button ng-show="parentsPending || queue.length || running" class="btn btn-danger btn-lg" ng-disabled="stopped" ng-click="clearQueue()">Stop &amp; clear queue</button>
+                <div ng-hide="parentsPending || queue.length || running" class="btn-group">
+                    <button class="btn btn-success dropdown-toggle btn-lg" data-toggle="dropdown">Download
                         <span class="caret"></span>
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>
@@ -127,7 +129,6 @@
                         <li><a ng-click="downloadCSV()" href="#">TSV</a></li>
                         <li><a ng-click="downloadGEXF()" href="#">GEXF</a></li>
                     </ul>
-                    <span class="parents-msg" ng-show="getParents && resolved && resolved == pending && parentsPending">still resolving {{parentsPending}} parents...</span>
                 </div>
 
                 <div class="notFound">
@@ -138,10 +139,10 @@
                 </div>
                 <br/>
 
-                <div ng-show="!!stopped.length" class="stopped">
+                <div ng-show="!!stoppedPages.length" class="stopped">
                     <div class="lbl"><b>Stopped from stopWord list</b></div>
                     <ul>
-                        <li ng-repeat="page in stopped track by $index"><a class="discreet" target="_blank" href="{{wikiLink(page)}}">{{page}}</a></li>
+                        <li ng-repeat="page in stoppedPages track by $index"><a class="discreet" target="_blank" href="{{wikiLink(page)}}">{{page}}</a></li>
                     </ul>
                 </div>
             </div>

@@ -189,11 +189,6 @@ tags-input .tags .tag-item{
     padding-left: 0px;
     margin-top: 35px;
 }
-.parents-msg{
-    position: relative;
-    top: 8px;
-    left: 7px;
-}
 a.discreet{
     text-decoration: none;
     color: #333;

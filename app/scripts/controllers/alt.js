@@ -27,8 +27,9 @@ angular.module('wikiDiverApp')
 
         $scope.init = function(){
             $scope.alert = false;
+            $scope.stopped = false;
             $scope.notFound = [];
-            $scope.stopped = [];
+            $scope.stoppedPages = [];
             $scope.nodes = [];
             $scope.edges = [];
             $scope.parentsPending = 0;
@@ -36,6 +37,7 @@ angular.module('wikiDiverApp')
             $scope.resolved = 0;
             $scope.queue = [];
             $scope.running = 0;
+            $scope.processes = [];
         };
         $scope.init();
 
@@ -169,8 +171,8 @@ angular.module('wikiDiverApp')
                 if ($scope.stopWords.some(function(s){
                     return l.toLowerCase().indexOf(s.text.toLowerCase()) !== -1;
                 })) {
-                    if ($scope.stopped.indexOf(l) === -1)
-                        $scope.stopped.push(l);
+                    if ($scope.stoppedPages.indexOf(l) === -1)
+                        $scope.stoppedPages.push(l);
                     return false;
                 } else return !!l.trim();
             });
@@ -277,6 +279,7 @@ angular.module('wikiDiverApp')
 
         // Add a page to the corpus and find its parents and sons
         function getRelatives(page, ind, seed){
+            if ($scope.stopped) return;
             $scope.pending++;
             var link = '',
                 rgx = /wiki\/(.+)/g;
@@ -323,13 +326,14 @@ angular.module('wikiDiverApp')
                 filterStopWords(data.query.backlinks.map(function(l){
                     return l.title;
                 })).forEach(function(parentPage){
+                    if ($scope.stopped) return;
                     $scope.parentsPending++;
                     var parentLink = titleToLink(parentPage);
                     if ($scope.cacheLinks[parentLink] && $scope.cacheLinks[parentLink][0] !== '#NOT-FOUND#') {
-                        $timeout(function(){
+                        $scope.processes.push($timeout(function(){
                             validateParentFromLinks(page, parentLink, ind, $scope.cacheLinks[parentLink]);
                             $scope.parentsPending--;
-                        }, 0);
+                        }, 0));
                     } else {
                         $scope.queue.push({method: downloadPageSeeAlsoLinks, args: [parentLink, function(links){
                             validateParentFromLinks(page, parentLink, ind, links);
@@ -406,12 +410,22 @@ angular.module('wikiDiverApp')
 
         // Empty queue when free slots
         $interval(function(){
-            while ($scope.queue.length > 0 && $scope.running < $scope.maxQueries){
+            while (!$scope.stopped && $scope.queue.length > 0 && $scope.running < $scope.maxQueries){
                 var task = $scope.queue.shift();
                 $scope.running++;
                 task.method.apply(null, task.args);
             }
         }, 25);
+
+        $scope.clearQueue = function(){
+            $scope.stopped = true;
+            $scope.processes.forEach(function(p){
+                clearTimeout(p.$$timeoutId);
+            });
+            $scope.resolved = $scope.pending;
+            $scope.parentsPending = $scope.running;
+            $scope.queue = [];
+        };
 
         // Stop spatialization when crawl over
         $scope.$watch(
@@ -446,7 +460,6 @@ angular.module('wikiDiverApp')
 
 /* TODO
     - check language, validate and adapt
-    - add stop button
     - append seeds afterwards
 */
 
