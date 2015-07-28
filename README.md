@@ -31,6 +31,8 @@ It contains two arrays of objects: the first one containing nodes, the second on
 ##Installation
 
 `npm install` 
+
 `bower install`
+
 `grunt serv`
 
