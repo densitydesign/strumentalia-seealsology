@@ -23,7 +23,7 @@ angular.module('wikiDiverApp')
         $scope.maxQueries = 20;
         $scope.cacheHours = 24;
         $scope.sigma = undefined;
-        $scope.colors = ['#69CD4D', '#68CB9B', '#484460', '#8B86C9', '#B99638', '#4B5D32', '#BCC58B', '#484460', '#96B9C3'];
+        $scope.colors = ['#de2d26', '#fc9272', '#081d58','#253494','#225ea8','#1d91c0','#41b6c4','#7fcdbb','#c7e9b4','#edf8b1','#ffffd9'];
 
         $scope.init = function(){
             $scope.alert = false;
@@ -346,7 +346,7 @@ angular.module('wikiDiverApp')
                 $log.error('Could not get backlinks from API for', page, e);
             });
         }
-                    
+
         // Keep only parent links coming from SeeAlso sections
         function validateParentFromLinks(page, parentLink, ind, links){
             var name = linkToTitle(page),
