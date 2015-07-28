@@ -21,14 +21,15 @@ angular.module('wikiDiverApp')
         $scope.depth = 2;
         $scope.getParents = true;
         $scope.maxQueries = 20;
-        $scope.cacheDuration = 86400;
+        $scope.cacheHours = 24;
         $scope.sigma = undefined;
         $scope.colors = ['#69CD4D', '#68CB9B', '#484460', '#8B86C9', '#B99638', '#4B5D32', '#BCC58B', '#484460', '#96B9C3'];
 
         $scope.init = function(){
             $scope.alert = false;
+            $scope.stopped = false;
             $scope.notFound = [];
-            $scope.stopped = [];
+            $scope.stoppedPages = [];
             $scope.nodes = [];
             $scope.edges = [];
             $scope.parentsPending = 0;
@@ -36,11 +37,12 @@ angular.module('wikiDiverApp')
             $scope.resolved = 0;
             $scope.queue = [];
             $scope.running = 0;
+            $scope.processes = [];
         };
         $scope.init();
 
         $scope.cacheLinks = {};
-        var yest = Math.floor(new Date() / 1000) - $scope.cacheDuration;
+        var yest = Math.floor(new Date() / 1000) - $scope.cacheHours * 3600;
         try {
             Object.keys(localStorage).forEach(function(k){
                 if (k.indexOf('seeAlsology-update-') !== 0) return;
@@ -52,15 +54,29 @@ angular.module('wikiDiverApp')
                 } else $scope.cacheLinks[u] = localStorage.getItem(p).split('|');
             });
         } catch(e){}
+        $scope.cacheLinksEmpty = !Object.keys($scope.cacheLinks).length;
 
         function cache(pageLink, links){
             links = links || [];
             $scope.cacheLinks[pageLink] = links;
+            $scope.cacheLinksEmpty = false;
             try {
                 localStorage.setItem('seeAlsology-' + pageLink, links.join('|'));
                 localStorage.setItem('seeAlsology-update-' + pageLink, Math.floor(new Date() / 1000));
             } catch(e){}
         }
+
+        $scope.clearCache = function(){
+            Object.keys(localStorage).forEach(function(k){
+                localStorage.removeItem(k);
+            });
+            $scope.cacheLinks = {};
+            $scope.cacheLinksEmpty = true;
+        };
+
+        $scope.toggleParents = function(){
+            $scope.getParents = !$scope.getParents;
+        };
 
         $scope.startCrawl = function(){
             $log.debug('starting crawling for', $scope.query.split('\n').length, 'pages');
@@ -84,6 +100,7 @@ angular.module('wikiDiverApp')
             });
 
             // Draw sigma legend
+            $('.sigma-legend').empty();
             $scope.colors.forEach(function(c, i){
                 $('.sigma-legend').append(
                   '<span>' +
@@ -152,10 +169,10 @@ angular.module('wikiDiverApp')
         function filterStopWords(links){
             return links.filter(function(l){
                 if ($scope.stopWords.some(function(s){
-                    return l.toLowerCase().indexOf(s.text) !== -1;
+                    return l.toLowerCase().indexOf(s.text.toLowerCase()) !== -1;
                 })) {
-                    if ($scope.stopped.indexOf(l) === -1)
-                        $scope.stopped.push(l);
+                    if ($scope.stoppedPages.indexOf(l) === -1)
+                        $scope.stoppedPages.push(l);
                     return false;
                 } else return !!l.trim();
             });
@@ -175,7 +192,7 @@ angular.module('wikiDiverApp')
         function downloadPageSeeAlsoLinks(pageLink, callback, updateResolved){
             // Use existing cache
             if ($scope.cacheLinks[pageLink]) {
-                if ($scope.cacheLinks[pageLink] === ['#NOT-FOUND#'])
+                if ($scope.cacheLinks[pageLink][0] === '#NOT-FOUND#')
                     notFound(pageLink, updateResolved);
                 else callback(filterStopWords($scope.cacheLinks[pageLink]));
 
@@ -262,6 +279,7 @@ angular.module('wikiDiverApp')
 
         // Add a page to the corpus and find its parents and sons
         function getRelatives(page, ind, seed){
+            if ($scope.stopped) return;
             $scope.pending++;
             var link = '',
                 rgx = /wiki\/(.+)/g;
@@ -308,13 +326,14 @@ angular.module('wikiDiverApp')
                 filterStopWords(data.query.backlinks.map(function(l){
                     return l.title;
                 })).forEach(function(parentPage){
+                    if ($scope.stopped) return;
                     $scope.parentsPending++;
                     var parentLink = titleToLink(parentPage);
-                    if ($scope.cacheLinks[parentLink] && $scope.cacheLinks[parentLink] !== ['#NOT-FOUND#']) {
-                        $timeout(function(){
+                    if ($scope.cacheLinks[parentLink] && $scope.cacheLinks[parentLink][0] !== '#NOT-FOUND#') {
+                        $scope.processes.push($timeout(function(){
                             validateParentFromLinks(page, parentLink, ind, $scope.cacheLinks[parentLink]);
                             $scope.parentsPending--;
-                        }, 0);
+                        }, 0));
                     } else {
                         $scope.queue.push({method: downloadPageSeeAlsoLinks, args: [parentLink, function(links){
                             validateParentFromLinks(page, parentLink, ind, links);
@@ -391,12 +410,22 @@ angular.module('wikiDiverApp')
 
         // Empty queue when free slots
         $interval(function(){
-            while ($scope.queue.length > 0 && $scope.running < $scope.maxQueries){
+            while (!$scope.stopped && $scope.queue.length > 0 && $scope.running < $scope.maxQueries){
                 var task = $scope.queue.shift();
                 $scope.running++;
                 task.method.apply(null, task.args);
             }
         }, 25);
+
+        $scope.clearQueue = function(){
+            $scope.stopped = true;
+            $scope.processes.forEach(function(p){
+                clearTimeout(p.$$timeoutId);
+            });
+            $scope.resolved = $scope.pending;
+            $scope.parentsPending = $scope.running;
+            $scope.queue = [];
+        };
 
         // Stop spatialization when crawl over
         $scope.$watch(
@@ -431,7 +460,6 @@ angular.module('wikiDiverApp')
 
 /* TODO
     - check language, validate and adapt
-    - add stop button
     - append seeds afterwards
 */
 

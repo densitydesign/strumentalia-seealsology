@@ -182,10 +182,12 @@ label{
 tags-input .tags .tag-item{
     background: #f1f1f1;
 }
-.parents-msg{
-    position: relative;
-    top: 8px;
-    left: 7px;
+.controls input, .controls label{
+    cursor: pointer;
+}
+.col-md-1.clear-cache{
+    padding-left: 0px;
+    margin-top: 35px;
 }
 a.discreet{
     text-decoration: none;
