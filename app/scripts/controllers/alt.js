@@ -72,6 +72,10 @@ angular.module('wikiDiverApp')
             $scope.cacheLinksEmpty = true;
         };
 
+        $scope.toggleParents = function(){
+            $scope.getParents = !$scope.getParents;
+        };
+
         $scope.startCrawl = function(){
             $log.debug('starting crawling for', $scope.query.split('\n').length, 'pages');
             $scope.init();

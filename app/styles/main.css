@@ -182,6 +182,9 @@ label{
 tags-input .tags .tag-item{
     background: #f1f1f1;
 }
+.controls input, .controls label{
+    cursor: pointer;
+}
 .col-md-1.clear-cache{
     padding-left: 0px;
     margin-top: 35px;
