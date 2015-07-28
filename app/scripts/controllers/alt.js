@@ -190,7 +190,7 @@ angular.module('wikiDiverApp')
         function downloadPageSeeAlsoLinks(pageLink, callback, updateResolved){
             // Use existing cache
             if ($scope.cacheLinks[pageLink]) {
-                if ($scope.cacheLinks[pageLink] === ['#NOT-FOUND#'])
+                if ($scope.cacheLinks[pageLink][0] === '#NOT-FOUND#')
                     notFound(pageLink, updateResolved);
                 else callback(filterStopWords($scope.cacheLinks[pageLink]));
 
@@ -325,7 +325,7 @@ angular.module('wikiDiverApp')
                 })).forEach(function(parentPage){
                     $scope.parentsPending++;
                     var parentLink = titleToLink(parentPage);
-                    if ($scope.cacheLinks[parentLink] && $scope.cacheLinks[parentLink] !== ['#NOT-FOUND#']) {
+                    if ($scope.cacheLinks[parentLink] && $scope.cacheLinks[parentLink][0] !== '#NOT-FOUND#') {
                         $timeout(function(){
                             validateParentFromLinks(page, parentLink, ind, $scope.cacheLinks[parentLink]);
                             $scope.parentsPending--;
