@@ -7,7 +7,6 @@
                 <h1>Seealsology</h1>
                 <p>Seealsology is simple tool that allows you to explore in a quick and dirty way the semantic area related to any Wikipedia Page.<br>To make it simple, it extracts all the links in the "See also" section producing a graph. The tool works only with the english version of Wikipedia.</p>
                 </p>
-
             </div>
         </div>
     </div>
@@ -17,120 +16,123 @@
     <td>{{$parent.entity.name}}</td><td>{{son.name}}</td><td>{{son.index}}</td>
     <tr ng-if="entity.sons" ng-repeat="entity in entity.sons" ng-include="'categoryTree'"></tr>
 </script>
+
 <section class="tool">
     <div class="container">
         <div class="box">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <div class="form-group">
-                        <label for="message">
-                            Paste your list of wikipedia articles here</label>
+                        <label for="message"> Paste your list of wikipedia articles here</label>
                         <textarea  name="message" id="message" class="form-control" rows="9" cols="25"
-                                   placeholder="ex: http://en.wikipedia.org/wiki/Climate_change"  ng-model="$parent.query"></textarea>
+                                   placeholder="ex: http://en.wikipedia.org/wiki/Climate_change"
+                                   ng-model="$parent.query">
+                        </textarea>
 
-
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div ng-show="alert" class="alert alert-warning" role="alert">Ouch. There is a mistake</div>
-                        </div>
+                        <div ng-show="alert" class="alert alert-warning" role="alert">Ouch. There is a mistake</div>
                     </div>
                 </div>
-            </div>
+                <div class="col-md-6">
 
-            <div class="row">
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label>Distance</label>
+                    <div class="form-group" >
+                        <label>Stop words (press enter or separate the works with a comma)</label>
                         <span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
-                        <div class="controls col-xm-3">
-                            <input type="number" name="input" ng-model="$parent.depth" min="1" max="9" style="width:100px" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="controls col-xm-3">
-                            <input type="checkbox" name="parents" ng-model="$parent.getParents" checked>
-                            <label class="parents-legend" title="Warning: resolving parent links takes a lot more time" ng-click="toggleParents()">Parent links</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-9">
-                    <div class="form-group">
-                        <label>Stop words (press enter or separate the works with a comma)</label><span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
                         <div class="controls">
                             <tags-input placeholder="add a word and press Enter" ng-model="stopWords"></tags-input></div>
                     </div>
-                </div>
-                <div class="col-md-1 clear-cache">
-                    <button ng-disabled="cacheLinksEmpty || parentsPending || queue.length || running" title="For sanity and performance reasons, results are cached in your browser for {{cacheHours}} hours. Click here to reset cache if you feel like results are not in sync with Wikipedia pages" ng-click="clearCache()" class="btn btn-warning btn-sm btn-block">Clear<br>Cache</button>
+                    <div class="col-md-6">
+                        <label>Distance</label>
+                        <span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
+                            <input type="number" name="input" ng-model="$parent.depth" min="1" max="9" style="width:100px" required>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="checkbox" name="parents" ng-model="$parent.getParents" checked>
+                        <label class="parents-legend" title="Warning: resolving parent links takes a lot more time" ng-click="toggleParents()">Parent links</label>
+                    </div>
                 </div>
             </div>
 
             <div class="row" id="crawl-button">
-                <div class="col-md-12">
+
+                <div class="col-md-6">
                     <button ng-hide="parentsPending || queue.length || running" ng-click="startCrawl()" class="btn btn-success btn-lg btn-block">Start Crawling</button>
                     <button ng-show="parentsPending || queue.length || running"  class="btn btn-warning btn-lg btn-block" ng-disabled="true">{{resolved}} / {{pending}} pages resolved
                         <span ng-show="getParents && parentsPending"> (still resolving {{parentsPending}} parents…)</span>
                     </button>
                 </div>
+
+
+                <div class="col-md-3">
+                    <div ng-show="!!resolved">
+                        <button ng-show="parentsPending || queue.length || running" class="btn btn-danger btn-lg btn-block" ng-disabled="stopped" ng-click="clearQueue()">Stop &amp; clear queue </button>
+                        <div ng-hide="parentsPending || queue.length || running" >
+                            <button class="btn btn-success dropdown-toggle btn-lg btn-block" data-toggle="dropdown">Download
+                                <span class="caret"></span>
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a ng-click="downloadJSON()" href="#">JSON</a></li>
+                                <li><a ng-click="downloadCSV()" href="#">TSV</a></li>
+                                <li><a ng-click="downloadGEXF()" href="#">GEXF</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                                <div  class="col-md-3">
+                    <button
+                        ng-hide="cacheLinksEmpty || parentsPending || queue.length || running"
+                        title="For sanity and performance reasons, results are cached in your browser for {{cacheHours}} hours. Click here to reset cache if you feel like results are not in sync with Wikipedia pages" ng-click="clearCache()" class="btn btn-warning btn-lg btn-block">Clear Cache</button>
+                </div>
+
+
             </div>
         </div>
 
-        <div ng-show="nodes.length" class="results col-md-8">
-            <div id="sigma"></div>
-            <div class="sigma-tools">
-              <div class="btn-group-vertical">
-                <button class="btn btn-link btn-sm" ng-click="zoomSigma(true)">
-                  <span class="glyphicon glyphicon-plus"></span>
-                </button>
-                <button class="btn btn-link btn-sm" ng-click="zoomSigma(false)">
-                  <span class="glyphicon glyphicon-minus"></span>
-                </button>
-                <button class="btn btn-link btn-sm" ng-click="recenterSigma()">
-                  <span class="glyphicon glyphicon-record"></span>
-                </button>
-              </div>
+
+        <div class="row">
+            <div ng-show="nodes.length" class="results col-md-12">
+                <div id="sigma"></div>
+                <div class="sigma-tools">
+                  <div class="btn-group-vertical">
+                    <button class="btn btn-link btn-sm" ng-click="zoomSigma(true)">
+                      <span class="glyphicon glyphicon-plus"></span>
+                    </button>
+                    <button class="btn btn-link btn-sm" ng-click="zoomSigma(false)">
+                      <span class="glyphicon glyphicon-minus"></span>
+                    </button>
+                    <button class="btn btn-link btn-sm" ng-click="recenterSigma()">
+                      <span class="glyphicon glyphicon-record"></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="sigma-legend"></div>
             </div>
-            <div class="sigma-legend"></div>
-            <div class="box">
+        </div>
+
+        <div ng-show="!!resolved" class="row ">
+
+            <div class="col-md-8 box">
                 <label>Results preview</label>
                 <table class="table table-striped">
                     <thead>
-                    <tr>
-                        <th>Source</th>
-                        <th>Target</th>
-                        <th>Level</th>
-                    </tr>
+                        <tr>
+                            <th>Source</th>
+                            <th>Target</th>
+                            <th>Level</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="entity in edges">
-                        <td><a class="discreet" target="_blank" href="{{wikiLink(entity.source)}}">{{entity.source}}</a></td>
-                        <td><a class="discreet" target="_blank" href="{{wikiLink(entity.target)}}">{{entity.target}}</a></td>
-                        <td>{{entity.index}}</td>
-                    </tr>
+                        <tr ng-repeat="entity in edges">
+                            <td><a class="discreet" target="_blank" href="{{wikiLink(entity.source)}}">{{entity.source}}</a></td>
+                            <td><a class="discreet" target="_blank" href="{{wikiLink(entity.target)}}">{{entity.target}}</a></td>
+                            <td>{{entity.index}}</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-        </div>
 
-        <div ng-show="!!resolved" class="report col-md-4">
-            <div class="box">
-
-                <button ng-show="parentsPending || queue.length || running" class="btn btn-danger btn-lg" ng-disabled="stopped" ng-click="clearQueue()">Stop &amp; clear queue</button>
-                <div ng-hide="parentsPending || queue.length || running" class="btn-group">
-                    <button class="btn btn-success dropdown-toggle btn-lg" data-toggle="dropdown">Download
-                        <span class="caret"></span>
-                        <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a ng-click="downloadJSON()" href="#">JSON</a></li>
-                        <li><a ng-click="downloadCSV()" href="#">TSV</a></li>
-                        <li><a ng-click="downloadGEXF()" href="#">GEXF</a></li>
-                    </ul>
-                </div>
-
+            <div class="col-md-4 box">
                 <div class="notFound">
                     <div ng-show="!!notFound.length" class="lbl"><b>Not found (See also section missing, or bad page name)</b></div>
                     <ul>
@@ -138,7 +140,6 @@
                     </ul>
                 </div>
                 <br/>
-
                 <div ng-show="!!stoppedPages.length" class="stopped">
                     <div class="lbl"><b>Stopped from stopWord list</b></div>
                     <ul>
@@ -146,6 +147,8 @@
                     </ul>
                 </div>
             </div>
+
         </div>
+
     </div>
 </section>
