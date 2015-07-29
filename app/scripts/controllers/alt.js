@@ -53,7 +53,7 @@ angular.module('wikiDiverApp')
         $scope.query = '';//http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil\n';
         $scope.depth = 2;
         $scope.getParents = true;
-        $scope.maxQueries = 20;
+        $scope.maxQueries = 10;
         $scope.cacheHours = 24;
         $scope.sigma = undefined;
         $scope.colors = ['#de2d26', '#fc9272', '#081d58','#253494','#225ea8','#1d91c0','#41b6c4','#7fcdbb','#c7e9b4','#edf8b1','#ffffd9'];
@@ -70,8 +70,8 @@ angular.module('wikiDiverApp')
             $scope.pending = 0;
             $scope.resolved = 0;
             $scope.queue = [];
+            $scope.edgesQueue = [];
             $scope.running = 0;
-            $scope.processes = [];
         };
         $scope.init();
 
@@ -129,20 +129,23 @@ angular.module('wikiDiverApp')
                 }
             }).configForceAtlas2({
                 adjustSizes: true,
+                scalingRatio: 10,
                 strongGravityMode: true,
-                slowDown: 20
+                gravity: 0.1,
+                slowDown: 15
             });
 
             // Draw sigma legend
             $('.sigma-legend').empty();
-            $scope.colors.forEach(function(c, i){
+            $scope.colors.slice(0, $scope.depth+3)
+              .forEach(function(c, i){
                 $('.sigma-legend').append(
                   '<span>' +
                      '<div style="background-color: ' + c + '"></div>' +
                     '&nbsp;&nbsp;' + (i ? 'level ' + (i-2) : 'seeds') +
                   '</span>'
                 );
-            });
+              });
 
 
             // Links to wikipages on click graph nodes
@@ -158,9 +161,11 @@ angular.module('wikiDiverApp')
                 }, 50);
 
                 // Start crawl on pages from query
-                $scope.validPages.forEach(function(e){
-                    getRelatives(e, 0, true);
-                });
+                $timeout(function(){
+                    $scope.validPages.forEach(function(e){
+                        getRelatives(e, 0, true);
+                    });
+                }, 10);
             }
         };
 
@@ -219,7 +224,7 @@ angular.module('wikiDiverApp')
         };
 
         function checkParentsDepth(){
-            if ($scope.getParents && $scope.depth > 3)
+            if ($scope.getParents && $scope.depth > 2)
                 $scope.alert = 'collecting parent links when crawling at a high depth can take a very long time';
             else $scope.alert = false;
         }
@@ -263,8 +268,10 @@ angular.module('wikiDiverApp')
             if ($scope.notFound.indexOf(linkToTitle(pageLink)) === -1 && updateResolved)
                 $scope.notFound.push(linkToTitle(pageLink));
             if (updateResolved) $scope.resolved++;
-            else $scope.parentsPending--;
-            $scope.running--;
+            else if ($scope.parentsPending)
+                $scope.parentsPending--;
+            if ($scope.running)
+                $scope.running--;
         }
 
         // Grab a page's SeeAlso links
@@ -286,7 +293,12 @@ angular.module('wikiDiverApp')
                 if (!sections.length) return notFound(pageLink, updateResolved);
 
                 // Grab page's SeeAlso section from API
-                sections.forEach(function(section){
+                sections.forEach(function(section, i){
+                    if (i){
+                        if (updateResolved)
+                            $scope.pending++;
+                        else $scope.parentsPending++;
+                    }
                     $http.jsonp('http://' + $scope.lang + '.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageLink +'&rvprop=content&rvsection='+ section.index +'&redirects&callback=JSON_CALLBACK')
                     .success(function(linksData){
                         // Collect links from the section content
@@ -357,6 +369,16 @@ angular.module('wikiDiverApp')
             $scope.sigma.graph.nodes(target).size = $scope.sigma.graph.degree(target);
         }
 
+        function depileEdgesQueue(){
+            if (!$scope.edgesQueue.length) return;
+            $scope.sigma.killForceAtlas2();
+            $scope.edgesQueue.forEach(function(e){
+                addEdge(e.source, e.target, e.level);
+            });
+            $scope.edgesQueue = [];
+            $scope.sigma.startForceAtlas2();
+        }
+
         // Add a page to the corpus and find its parents and sons
         function getRelatives(page, ind, seed){
             if ($scope.stopped) return;
@@ -366,60 +388,69 @@ angular.module('wikiDiverApp')
             if (seed){
                 link = rgx.exec(page)[1];
                 addNode(linkToTitle(link), 0, seed);
-            } else link = titleToLink(page.name);
-            $scope.queue.unshift({method: getSons, args: [link, ind]});
-            if ($scope.getParents) getParents(link, ind);
+            } else link = titleToLink(page);
+            $scope.queue.unshift({
+                method: getSons,
+                type: 'sons',
+                args: [link, ind]
+            });
+            if ($scope.getParents) $timeout(function(){
+                getParents(link, ind, seed);
+            }, 10);
         }
 
         // Get a page's sons
         function getSons(page, ind){
-            var sons = [];
-
             downloadPageSeeAlsoLinks(page, function(links){
-                $scope.sigma.killForceAtlas2();
                 links.forEach(function(d){
-                    addEdge(linkToTitle(page), linkToTitle(d), ind+1);
-                    sons.push({name: d, index: ind+1});
-                });
-                $scope.sigma.startForceAtlas2();
-
-                $scope.resolved++;
-                $scope.running--;
-                if (ind+1 < $scope.depth){
-                    sons.forEach(function(m){
-                        getRelatives(m, ind+1);
+                    $scope.edgesQueue.push({
+                        source: linkToTitle(page),
+                        target: linkToTitle(d),
+                        level: ind+1
                     });
+                    if (ind+1 < $scope.depth)
+                        getRelatives(d, ind+1);
+                });
                 }
+                $scope.resolved++;
+                if ($scope.running)
+                    $scope.running--;
             }, true);
         }
 
         // Get a page's parents
-        function getParents(page, ind){
+        function getParents(page, ind, seed){
             if ($scope.doneParents[page]) return;
             $scope.doneParents[page] = true;
 
             // Get backlinks to the page from the API
             $http.jsonp('http://' + $scope.lang + '.wikipedia.org/w/api.php?action=query&bltitle=' + page + '&blnamespace=0&list=backlinks&blredirect&blfilterredir=nonredirects&bllimit=250&format=json&callback=JSON_CALLBACK')
             .success(function(data){
-                if(!data.query || !data.query.backlinks) return null;
+                if(!data.query || !data.query.backlinks) return;
 
                 filterStopWords(data.query.backlinks.map(function(l){
                     return l.title;
                 })).forEach(function(parentPage){
                     if ($scope.stopped) return;
-                    $scope.parentsPending++;
                     var parentLink = titleToLink(parentPage);
-                    if ($scope.cacheLinks[parentLink] && $scope.cacheLinks[parentLink][0] !== '#NOT-FOUND#') {
-                        $scope.processes.push($timeout(function(){
+                    $scope.parentsPending++;
+                    if ($scope.cacheLinks[parentLink]){
+                        if ($scope.cacheLinks[parentLink][0] !== '#NOT-FOUND#')
                             validateParentFromLinks(page, parentLink, ind, $scope.cacheLinks[parentLink]);
+                        if ($scope.parentsPending)
                             $scope.parentsPending--;
-                        }, 0));
                     } else {
-                        $scope.queue.push({method: downloadPageSeeAlsoLinks, args: [parentLink, function(links){
-                            validateParentFromLinks(page, parentLink, ind, links);
-                            $scope.running--;
-                            $scope.parentsPending--;
-                        }]});
+                        $scope.queue[seed ? 'push' : 'unshift']({
+                            method: downloadPageSeeAlsoLinks,
+                            type: 'parent',
+                            args: [parentLink, function(links){
+                                validateParentFromLinks(page, parentLink, ind, links);
+                                if ($scope.running)
+                                    $scope.running--;
+                                if ($scope.parentsPending)
+                                    $scope.parentsPending--;
+                            }]
+                        });
                     }
                 });
             }).error(function(e){
@@ -432,9 +463,11 @@ angular.module('wikiDiverApp')
             var name = linkToTitle(page),
                 check = name.toLowerCase();
             if (links.some(function(l){ return (l.toLowerCase() === check); })){
-                $scope.sigma.killForceAtlas2();
-                addEdge(linkToTitle(parentLink), name, ind);
-                $scope.sigma.startForceAtlas2();
+                $scope.edgesQueue.push({
+                    source: linkToTitle(parentLink),
+                    target: name,
+                    level: ind
+                });
             }
         }
 
@@ -490,30 +523,38 @@ angular.module('wikiDiverApp')
 
         // Empty queue when free slots
         $interval(function(){
+            depileEdgesQueue();
             while (!$scope.stopped && $scope.queue.length > 0 && $scope.running < $scope.maxQueries){
                 var task = $scope.queue.shift();
                 $scope.running++;
                 task.method.apply(null, task.args);
             }
-        }, 25);
+        }, 200);
 
         $scope.clearQueue = function(){
             $scope.stopped = true;
-            $scope.processes.forEach(function(p){
-                clearTimeout(p.$$timeoutId);
+            $scope.queue.forEach(function(d){
+                if (d.type === 'sons')
+                    $scope.pending--;
+                else if ($scope.parentsPending)
+                    $scope.parentsPending--;
             });
-            $scope.resolved = $scope.pending;
-            $scope.parentsPending = $scope.running;
             $scope.queue = [];
+        };
+
+        $scope.working = function(){
+            return $scope.queue.length + $scope.running + $scope.parentsPending + $scope.pending - $scope.resolved + $scope.edgesQueue.length;
         };
 
         // Stop spatialization when crawl over
         $scope.$watch(
-            function(){ return $scope.pending - $scope.resolved + $scope.parentsPending; },
+            $scope.working,
             function(n, o){
                 if (!n && n !== o) $timeout(function(){
+                    if ($scope.working() || !$scope.sigma)
+                        return;
                     $scope.sigma.stopForceAtlas2();
-                }, parseInt(Math.sqrt(10 * $scope.nodes.length) * 100));
+                }, 1500 + parseInt(Math.sqrt(10 * $scope.nodes.length) * 200));
             }
         );
 
@@ -536,10 +577,9 @@ angular.module('wikiDiverApp')
 
 
         // Debug
-        $interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 2000);
+        //$interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 1000);
 
 /* TODO
-    - pb with Stop when main pages not all resolved
     - append seeds afterwards
     - grunt build to bundle
     - handle long tables

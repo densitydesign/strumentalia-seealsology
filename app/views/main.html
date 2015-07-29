@@ -44,7 +44,7 @@
                     <div class="col-md-6">
                         <label>Distance</label>
                         <span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
-                            <input type="number" name="input" ng-model="$parent.depth" min="1" max="7" style="width:100px" required>
+                            <input type="number" name="input" ng-model="$parent.depth" min="1" max="8" style="width:100px" required>
                     </div>
                     <div class="col-md-6 controls">
                         <input type="checkbox" name="parents" ng-model="$parent.getParents" checked>
@@ -56,8 +56,8 @@
             <div class="row" id="crawl-button">
 
                 <div class="col-md-6">
-                    <button ng-disabled="!lang || (alert && alert.indexOf('collect') !== 0)" ng-hide="parentsPending || queue.length || running" ng-click="startCrawl()" class="btn btn-success btn-lg btn-block">Start Crawling</button>
-                    <button ng-show="parentsPending || queue.length || running"  class="btn btn-warning btn-lg btn-block" ng-disabled="true">{{resolved}} / {{pending}} pages resolved
+                    <button ng-disabled="!lang || (alert && alert.indexOf('collect') !== 0)" ng-hide="working()" ng-click="startCrawl()" class="btn btn-success btn-lg btn-block">Start Crawling</button>
+                    <button ng-show="working()"  class="btn btn-warning btn-lg btn-block" ng-disabled="true">{{resolved}} / {{pending}} pages resolved
                         <span ng-show="getParents && parentsPending"> (still resolving {{parentsPending}} parents…)</span>
                     </button>
                 </div>
@@ -65,8 +65,8 @@
 
                 <div class="col-md-3">
                     <div ng-show="!!resolved">
-                        <button ng-show="parentsPending || queue.length || running" class="btn btn-danger btn-lg btn-block" ng-click="clearQueue()">Stop &amp; clear queue </button>
-                        <div ng-hide="parentsPending || queue.length || running">
+                        <button ng-show="working()" class="btn btn-danger btn-lg btn-block" ng-disabled="stopped" ng-click="clearQueue()">Stop &amp; clear queue </button>
+                        <div ng-hide="working()">
                             <button class="btn btn-success dropdown-toggle btn-lg btn-block" data-toggle="dropdown">Download
                                 <span class="caret"></span>
                                 <span class="sr-only">Toggle Dropdown</span>
@@ -80,9 +80,9 @@
                     </div>
                 </div>
 
-                                <div  class="col-md-3">
+                <div  class="col-md-3">
                     <button
-                        ng-hide="cacheLinksEmpty || parentsPending || queue.length || running"
+                        ng-hide="cacheLinksEmpty || working()"
                         title="For sanity and performance reasons, results are cached in your browser for {{cacheHours}} hours. Click here to reset cache if you feel like results are not in sync with Wikipedia pages" ng-click="clearCache()" class="btn btn-warning btn-lg btn-block">Clear Cache</button>
                 </div>
 
