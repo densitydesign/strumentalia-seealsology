@@ -25,7 +25,7 @@ angular.module('wikiDiverApp')
               'index d',
               'catégories d',
               'portail',
-              'désambiguation',
+              'désambiguïsation',
               'résumé d',
               'Catégorie:',
               'Fichier:'
