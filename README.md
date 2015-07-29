@@ -27,3 +27,12 @@ Three formats are available:
 * **JSON.** The network described as object. It is compatible both with [D3.js](http://bl.ocks.org/mbostock/4062045) and [sigma.js](http://sigmajs.org/).
 It contains two arrays of objects: the first one containing nodes, the second one containing edges. Each node and edge is defined as object.
 * **GEXF.** The network in [XML-compliant format](http://gexf.net/format/), easily importable in [Gephi](http://gephi.github.io/), an opensource tool for network visualization.
+
+##Installation
+
+`npm install` 
+
+`bower install`
+
+`grunt serv`
+
