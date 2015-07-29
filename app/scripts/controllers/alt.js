@@ -244,7 +244,9 @@ angular.module('wikiDiverApp')
 
         // Filter links to pages matching stopWords
         function filterStopWords(links){
-            return links.filter(function(l){
+            return links.map(function(l){
+                return l.replace(/#.*$/, '');
+            }).filter(function(l){
                 if ($scope.stopWords.some(function(s){
                     return l.toLowerCase().indexOf(s.text.toLowerCase()) !== -1;
                 })) {
@@ -360,7 +362,7 @@ angular.module('wikiDiverApp')
             if ($scope.stopped) return;
             $scope.pending++;
             var link = '',
-                rgx = /wiki\/(.+)/g;
+                rgx = /wiki\/(.+?)(?:#.*)?$/g;
             if (seed){
                 link = rgx.exec(page)[1];
                 addNode(linkToTitle(link), 0, seed);
@@ -537,7 +539,6 @@ angular.module('wikiDiverApp')
         $interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 2000);
 
 /* TODO
-    - handle pages with #
     - pb with Stop when main pages not all resolved
     - append seeds afterwards
     - grunt build to bundle
