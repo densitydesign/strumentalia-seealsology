@@ -165,12 +165,15 @@ angular.module('wikiDiverApp')
         };
 
         $scope.validate = function(){
-            $scope.alert = false;
+            if ($scope.alert && $scope.alert.indexOf('collecting') !== 0)
+                $scope.alert = false;
             $scope.missingLang = false;
 
             // Check query
             if (!$scope.query.trim()){
-                $scope.alert = 'please enter at least one wikipedia page';
+                checkParentsDepth();
+                if (!$scope.alert)
+                    $scope.alert = 'please enter at least one wikipedia page';
                 return false;
             }
 
@@ -203,6 +206,7 @@ angular.module('wikiDiverApp')
                 $scope.missingLang = true;
                 $scope.alert = lang + ' language is not supported yet, we do not know which section to look for as a "See Also", neither which default stopWords to apply.';
             } else {
+                checkParentsDepth();
                 $scope.lang = langs[0];
                 var curSW = $scope.stopWords.map(function(s){ return s.text; });
                 languages[lang].stopWords.forEach(function(s){
@@ -214,8 +218,18 @@ angular.module('wikiDiverApp')
             return false;
         };
 
-        $scope.$watch('query', function(newV, oldV){
-            if (newV && newV !== oldV) $scope.validate();
+        function checkParentsDepth(){
+            if ($scope.getParents && $scope.depth > 3)
+                $scope.alert = 'collecting parent links when crawling at a high depth can take a very long time';
+            else $scope.alert = false;
+        }
+
+        $scope.$watchCollection('query', function(newV, oldV){
+            if (newV !== oldV) $scope.validate();
+        });
+        $scope.$watchCollection('[getParents, depth]', function(newV, oldV){
+            if (newV === oldV || ($scope.alert && $scope.alert.indexOf('collecting') !== 0)) return;
+            checkParentsDepth();
         });
 
         function linkToTitle(t){
