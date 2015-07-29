@@ -411,7 +411,6 @@ angular.module('wikiDiverApp')
                     if (ind+1 < $scope.depth)
                         getRelatives(d, ind+1);
                 });
-                }
                 $scope.resolved++;
                 if ($scope.running)
                     $scope.running--;
@@ -440,7 +439,7 @@ angular.module('wikiDiverApp')
                         if ($scope.parentsPending)
                             $scope.parentsPending--;
                     } else {
-                        $scope.queue[seed ? 'push' : 'unshift']({
+                        $scope.queue[seed ? 'unshift' : 'push']({
                             method: downloadPageSeeAlsoLinks,
                             type: 'parent',
                             args: [parentLink, function(links){
