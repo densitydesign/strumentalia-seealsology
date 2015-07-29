@@ -30,9 +30,21 @@ It contains two arrays of objects: the first one containing nodes, the second on
 
 ##Installation
 
-`npm install` 
+First install nodeJs, then run:
 
-`bower install`
+```bash
+npm install
+sudo npm install -g bower
+bower install
+```
 
-`grunt serv`
+To serve a development instance:
+```bash
+grunt serve
+```
 
+Or to build a static instance for a production server:
+```bash
+grunt build
+```
+and serve the dist directory to whatever path you like with your favorite server software.

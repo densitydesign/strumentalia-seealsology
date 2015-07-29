@@ -65,9 +65,7 @@
     <script src="bower_components/json3/lib/json3.min.js"></script>
     <![endif]-->
 
-    <script src="scripts/sigma.min.js"></script>
-    <script src="scripts/sigma.layout.forceAtlas2.min.js"></script>
-    <!-- build:js({.tmp,app/..}) scripts/vendor.js -->
+    <!-- build:js({.tmp,app/..}) vendor.js -->
     <!-- bower:js -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
     <script src="bower_components/angular/angular.js"></script>
@@ -79,9 +77,13 @@
     <script src="bower_components/ng-tags-input/ng-tags-input.min.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
-        <!-- build:js({.tmp,app}) scripts/scripts.js -->
-        <script src="scripts/app.js"></script>
-        <script src="scripts/controllers/alt.js"></script>
-        <!-- endbuild -->
+    <!-- build:js({.tmp,app}) scripts/sigma.js -->
+    <script src="scripts/sigma.min.js"></script>
+    <script src="scripts/sigma.layout.forceAtlas2.min.js"></script>
+    <!-- endbuild -->
+    <!-- build:js({.tmp,app}) scripts/seeAlsology.js -->
+    <script src="scripts/app.js"></script>
+    <script src="scripts/controllers/alt.js"></script>
+    <!-- endbuild -->
 </body>
 </html>

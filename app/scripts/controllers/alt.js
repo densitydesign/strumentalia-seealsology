@@ -580,7 +580,6 @@ angular.module('wikiDiverApp')
 
 /* TODO
     - append seeds afterwards
-    - grunt build to bundle
     - handle long tables
 */
 
