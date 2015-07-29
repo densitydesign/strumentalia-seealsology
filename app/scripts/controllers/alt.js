@@ -2,19 +2,52 @@
 
 angular.module('wikiDiverApp')
     .controller('AltCtrl', function ($scope, $http, $log, $timeout, $interval, $window) {
-        var regex = /en\.wikipedia\.org\/wiki\/.+/; // regex to match candidates
+
+        // seeAlso section names for a language should be given as lowercase
+        var languages = {
+          en: {
+            name: 'english',
+            seeAlso: ['see also'],
+            stopWords: [
+              'list of',
+              'index of',
+              'categories of',
+              'portal',
+              'disambiguation',
+              'outline of'
+            ]
+          },
+          fr: {
+            name: 'french',
+            seeAlso: ['voir aussi', 'Articles connexes'],
+            stopWords: [
+              'liste d',
+              'index d',
+              'catégories d',
+              'portail',
+              'désambiguation',
+              'résumé d',
+              'Catégorie:',
+              'Fichier:'
+            ]
+          },
+          it: {
+            name: 'italian',
+            seeAlso: ['Voci correlate', 'Vedi anche'],
+            stopWords: [
+              'Portale:',
+              'Categoria:'
+            ]
+          }
+        };
+        $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).join(', ');
 
         $scope.stopWords = [
-            'list of',
-            'index of',
-            'categories of',
-            'portal',
-            'disambiguation',
-            'outline of',
-            'Wikipedia:',
-            'Category:',
-            'File:',
-            'wikisource:'
+          'Wikipedia:',
+          'Category:',
+          'File:',
+          'wikisource:',
+          'Commons:'
         ];
 
         $scope.query = '';//http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil\n';
@@ -26,6 +59,7 @@ angular.module('wikiDiverApp')
         $scope.colors = ['#69CD4D', '#68CB9B', '#484460', '#8B86C9', '#B99638', '#4B5D32', '#BCC58B', '#484460', '#96B9C3'];
 
         $scope.init = function(){
+            $scope.lang = '';
             $scope.alert = false;
             $scope.stopped = false;
             $scope.notFound = [];
@@ -116,44 +150,73 @@ angular.module('wikiDiverApp')
                 $window.open($scope.wikiLink(e.data.node.id), '_blank');
             });
 
-            // Check query
-            if ($scope.query.trim() !== '') {
-                var errors = [],
-                    listOfPages = $scope.query.split('\n'),
-                    validPages = [];
-
-                // check for integrity
-                validPages = listOfPages.filter(function(d) {
-                    if (d.trim() === '') return false;
-
-                    $log.info('checking', d, regex.test(d)? 'is a wikipedia page': 'is not a wiki page ...');
-
-                    if (regex.test(d)) return d;
-                    else errors.push(d);
-                });
-
-                $log.debug('valid wikipedia pages:',validPages, '/', listOfPages, 'n. error pages:', errors.length);
+            // Validate inputs before starting process
+            if ($scope.validate()) {
+                // Scroll down to viz
+                $timeout(function(){
+                    $window.scrollTo(0, document.getElementById('crawl-button').offsetTop - 12);
+                }, 50);
 
                 // Start crawl on pages from query
-                if (!errors.length){
-                    $timeout(function(){
-                        $window.scrollTo(0, document.getElementById('crawl-button').offsetTop - 12);
-                    }, 50);
-
-                    validPages.forEach(function(e){
-                        getRelatives(e, 0, true);
-                    });
-                }
-                // or report errors
-                else {
-                    $log.error('Not valid wikipedia pages: ', errors);
-                    $scope.alert = true;
-                }
-            } else {
-                $log.error('Empty Query!');
-                $scope.alert = true;
+                $scope.validPages.forEach(function(e){
+                    getRelatives(e, 0, true);
+                });
             }
         };
+
+        $scope.validate = function(){
+            $scope.alert = false;
+            $scope.missingLang = false;
+
+            // Check query
+            if (!$scope.query.trim()){
+                $scope.alert = 'please enter at least one wikipedia page';
+                return false;
+            }
+
+            var regex = /https?:\/\/([a-z]+)\.wikipedia\.org\/wiki\/.+/i,
+                testUrl = null,
+                listOfPages = $scope.query.split('\n'),
+                lang = '',
+                langs = [],
+                errors = [];
+
+            // check for integrity
+            $scope.validPages = listOfPages.filter(function(d) {
+                if (!d.trim()) return false;
+                testUrl = d.match(regex);
+                if (!testUrl) {
+                    errors.push(d);
+                    return false;
+                }
+                lang = testUrl[1].toLowerCase();
+                if (langs.indexOf(lang) === -1)
+                    langs.push(lang);
+                return true;
+            });
+
+            if (errors.length)
+                $scope.alert = 'these are not valid wikipedia pages: ' + errors.join(' &nbsp;&nbsp;&nbsp; ');
+            else if (langs.length > 1)
+                $scope.alert = 'please enter wikipedia pages from the same language (you gave pages from ' + langs.join(', ') + ')';
+            else if (!languages[lang]) {
+                $scope.missingLang = true;
+                $scope.alert = lang + ' language is not supported yet, we do not know which section to look for as a "See Also", neither which default stopWords to apply.';
+            } else {
+                $scope.lang = langs[0];
+                var curSW = $scope.stopWords.map(function(s){ return s.text; });
+                languages[lang].stopWords.forEach(function(s){
+                    if (curSW.indexOf(s) === -1)
+                        $scope.stopWords.push({text: s});
+                });
+                return true;
+            }
+            return false;
+        };
+
+        $scope.$watch('query', function(newV, oldV){
+            if (newV && newV !== oldV) $scope.validate();
+        });
 
         function linkToTitle(t){
             return decodeURIComponent(t).replace(/_/g, ' ');
@@ -162,7 +225,7 @@ angular.module('wikiDiverApp')
             return encodeURIComponent(t.replace(/ /g, '_'));
         }
         $scope.wikiLink = function(t){
-            return 'http://en.wikipedia.org/wiki/' + titleToLink(t);
+            return 'http://' + $scope.lang + '.wikipedia.org/wiki/' + titleToLink(t);
         };
 
         // Filter links to pages matching stopWords
@@ -197,33 +260,34 @@ angular.module('wikiDiverApp')
                 else callback(filterStopWords($scope.cacheLinks[pageLink]));
 
             // or find the page's SeeAlso section from API
-            } else $http.jsonp('http://en.wikipedia.org/w/api.php?action=parse&page=' + pageLink + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK')
+            } else $http.jsonp('http://' + $scope.lang + '.wikipedia.org/w/api.php?action=parse&page=' + pageLink + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK')
             .success(function(data){
                 if (!data.parse) return notFound(pageLink, updateResolved);
 
-                var section = null;
-                data.parse.sections.forEach(function(e){
-                    if (e.line === 'See also') section = e.index;
+                var sections = data.parse.sections.filter(function(s){
+                    return languages[$scope.lang].seeAlso.indexOf(s.line.toLowerCase()) !== -1;
                 });
-                if (!section) return notFound(pageLink, updateResolved);
+                if (!sections.length) return notFound(pageLink, updateResolved);
 
                 // Grab page's SeeAlso section from API
-                $http.jsonp('http://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageLink +'&rvprop=content&rvsection='+ section +'&redirects&callback=JSON_CALLBACK')
-                .success(function(linksData){
-                    // Collect links from the section content
-                    var o = linksData.query.pages[Object.keys(linksData.query.pages)[0]].revisions[0]['*'],
-                        regex = /\[\[(.*?)\]\]/g,
-                        matches = regex.exec(o),
-                        links = [];
-                    while (matches){
-                        links.push(matches[1].split('|')[0]);
-                        matches = regex.exec(o);
-                    }
-                    cache(pageLink, links);
-                    callback(filterStopWords(links));
-                }).error(function(e){
-                    $log.error('Could not get content of SeeAlso section from API for', pageLink, e);
-                    notFound(pageLink, updateResolved);
+                sections.forEach(function(section){
+                    $http.jsonp('http://' + $scope.lang + '.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageLink +'&rvprop=content&rvsection='+ section.index +'&redirects&callback=JSON_CALLBACK')
+                    .success(function(linksData){
+                        // Collect links from the section content
+                        var o = linksData.query.pages[Object.keys(linksData.query.pages)[0]].revisions[0]['*'],
+                            linksRegex = /\[\[(.*?)\]\]/g,
+                            matches = linksRegex.exec(o),
+                            links = [];
+                        while (matches){
+                            links.push(matches[1].split('|')[0]);
+                            matches = linksRegex.exec(o);
+                        }
+                        cache(pageLink, links);
+                        callback(filterStopWords(links));
+                    }).error(function(e){
+                        $log.error('Could not get content of SeeAlso section from API for', pageLink, e);
+                        notFound(pageLink, updateResolved);
+                    });
                 });
             }).error(function(e){
                 $log.error('Could not get sections from API for', pageLink, e);
@@ -319,7 +383,7 @@ angular.module('wikiDiverApp')
             $scope.doneParents[page] = true;
 
             // Get backlinks to the page from the API
-            $http.jsonp('http://en.wikipedia.org/w/api.php?action=query&bltitle=' + page + '&blnamespace=0&list=backlinks&blredirect&blfilterredir=nonredirects&bllimit=250&format=json&callback=JSON_CALLBACK')
+            $http.jsonp('http://' + $scope.lang + '.wikipedia.org/w/api.php?action=query&bltitle=' + page + '&blnamespace=0&list=backlinks&blredirect&blfilterredir=nonredirects&bllimit=250&format=json&callback=JSON_CALLBACK')
             .success(function(data){
                 if(!data.query || !data.query.backlinks) return null;
 
@@ -456,11 +520,14 @@ angular.module('wikiDiverApp')
 
 
         // Debug
-        //$interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 2000);
+        $interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 2000);
 
 /* TODO
-    - check language, validate and adapt
+    - handle pages with #
+    - pb with Stop when main pages not all resolved
     - append seeds afterwards
+    - grunt build to bundle
+    - handle long tables
 */
 
     });
