@@ -123,29 +123,19 @@
                             <th>Level</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr ng-repeat="entity in edges">
-                            <td><a class="discreet" target="_blank" href="{{wikiLink(entity.source)}}">{{entity.source}}</a></td>
-                            <td><a class="discreet" target="_blank" href="{{wikiLink(entity.target)}}">{{entity.target}}</a></td>
-                            <td>{{entity.index}}</td>
-                        </tr>
-                    </tbody>
+                    <tbody id="edges"></tbody>
                 </table>
             </div>
 
             <div class="col-md-4 box">
                 <div class="notFound">
                     <div ng-show="!!notFound.length" class="lbl"><b>Not found (See also section missing, or bad page name)</b></div>
-                    <ul>
-                        <li ng-repeat="page in notFound track by $index"><a class="discreet" target="_blank" href="{{wikiLink(page)}}">{{page}}</a></li>
-                    </ul>
+                    <ul></ul>
                 </div>
                 <br/>
                 <div ng-show="!!stoppedPages.length" class="stopped">
                     <div class="lbl"><b>Stopped from stopWord list</b></div>
-                    <ul>
-                        <li ng-repeat="page in stoppedPages track by $index"><a class="discreet" target="_blank" href="{{wikiLink(page)}}">{{page}}</a></li>
-                    </ul>
+                    <ul></ul>
                 </div>
             </div>
 

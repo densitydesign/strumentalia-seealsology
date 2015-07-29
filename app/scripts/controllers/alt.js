@@ -59,6 +59,7 @@ angular.module('wikiDiverApp')
         $scope.colors = ['#de2d26', '#fc9272', '#081d58','#253494','#225ea8','#1d91c0','#41b6c4','#7fcdbb','#c7e9b4','#edf8b1','#ffffd9'];
 
         $scope.init = function(){
+            $('#edges, .stopped ul, .notFound ul').empty();
             $scope.lang = '';
             $scope.alert = false;
             $scope.stopped = false;
@@ -150,7 +151,7 @@ angular.module('wikiDiverApp')
 
             // Links to wikipages on click graph nodes
             $scope.sigma.bind('clickNode', function(e) {
-                $window.open($scope.wikiLink(e.data.node.id), '_blank');
+                $window.open(wikiLink(e.data.node.id), '_blank');
             });
 
             // Validate inputs before starting process
@@ -243,9 +244,12 @@ angular.module('wikiDiverApp')
         function titleToLink(t){
             return encodeURIComponent(t.replace(/ /g, '_'));
         }
-        $scope.wikiLink = function(t){
+        function wikiLink(t){
             return 'http://' + $scope.lang + '.wikipedia.org/wiki/' + titleToLink(t);
-        };
+        }
+        function discreetLink(t){
+            return '<a class="discreet" target="_blank" href="' + wikiLink(t) + '">' + t + '</a>';
+        }
 
         // Filter links to pages matching stopWords
         function filterStopWords(links){
@@ -255,8 +259,10 @@ angular.module('wikiDiverApp')
                 if ($scope.stopWords.some(function(s){
                     return l.toLowerCase().indexOf(s.text.toLowerCase()) !== -1;
                 })) {
-                    if ($scope.stoppedPages.indexOf(l) === -1)
+                    if ($scope.stoppedPages.indexOf(l) === -1){
                         $scope.stoppedPages.push(l);
+                        $('.stopped ul').append('<li>' + discreetLink(l) + '</li>');
+                    }
                     return false;
                 } else return !!l.trim();
             });
@@ -265,8 +271,11 @@ angular.module('wikiDiverApp')
         // Declare when page not found or section "SeeAlso" misses
         function notFound(pageLink, updateResolved){
             cache(pageLink, ['#NOT-FOUND#']);
-            if ($scope.notFound.indexOf(linkToTitle(pageLink)) === -1 && updateResolved)
-                $scope.notFound.push(linkToTitle(pageLink));
+            var title = linkToTitle(pageLink);
+            if ($scope.notFound.indexOf(title) === -1 && updateResolved){
+                $scope.notFound.push(title);
+                $('.notFound ul').append('<li>' + discreetLink(title) + '</li>');
+            }
             if (updateResolved) $scope.resolved++;
             else if ($scope.parentsPending)
                 $scope.parentsPending--;
@@ -356,6 +365,11 @@ angular.module('wikiDiverApp')
 
             var edgeId = source + '->' + target;
             if ($scope.edgesIndex[edgeId]) return;
+            $('#edges').append('<tr>' +
+                '<td>' + discreetLink(source) + '</td>' +
+                '<td>' + discreetLink(target) + '</td>' +
+                '<td>' + ind + '</td>' +
+            '</tr>');
             $scope.edgesIndex[edgeId] = true;
             $scope.edges.push({source: source, target: target, index: ind});
 
@@ -580,7 +594,6 @@ angular.module('wikiDiverApp')
 
 /* TODO
     - append seeds afterwards
-    - handle long tables
 */
 
     });
