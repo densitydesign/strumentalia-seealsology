@@ -44,7 +44,7 @@
                     <div class="col-md-6">
                         <label>Distance</label>
                         <span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
-                            <input type="number" name="input" ng-model="$parent.depth" min="1" max="8" style="width:100px" required>
+                            <input type="number" name="input" ng-model="$parent.depth" min="1" max="5" style="width:100px" required>
                     </div>
                     <div class="col-md-6 controls">
                         <input type="checkbox" name="parents" ng-model="$parent.getParents" checked>
@@ -91,6 +91,10 @@
 
         <div class="row">
             <div ng-show="nodes.length" class="results col-md-12">
+                <div class="sigma-tuto">
+                    <span class="left">Click a node to visit it on Wikipedia</span>
+                    <span class="right">Ctrl+Click a node to add it to the seeds</span>
+                </div>
                 <div class="sigma-legend"></div>
                 <div id="sigma"></div>
                 <div class="sigma-tools">

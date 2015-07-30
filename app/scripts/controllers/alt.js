@@ -149,9 +149,19 @@ angular.module('wikiDiverApp')
               });
 
 
-            // Links to wikipages on click graph nodes
             $scope.sigma.bind('clickNode', function(e) {
-                $window.open(wikiLink(e.data.node.id), '_blank');
+                var link = wikiLink(e.data.node.label);
+                // Links to wikipages on click graph nodes
+                if (!e.data.captor.ctrlKey)
+                    return $window.open(link, '_blank');
+                // add seed when ctrl+click ongraph nodes
+                $scope.query += "\n" + link;
+                e.data.node.seed = true;
+                e.data.node.color = $scope.colors[0];
+                $scope.sigma.refresh();
+                $timeout(function(){
+                    getRelatives(link, 0, true);
+                }, 10);
             });
 
             // Validate inputs before starting process
@@ -599,10 +609,6 @@ angular.module('wikiDiverApp')
 
         // Debug
         //$interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 1000);
-
-/* TODO
-    - append seeds afterwards
-*/
 
     });
 
