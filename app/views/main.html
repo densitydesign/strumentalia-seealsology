@@ -99,14 +99,20 @@
                 <div id="sigma"></div>
                 <div class="sigma-tools">
                   <div class="btn-group-vertical">
+                    <button class="btn btn-link btn-sm" ng-click="recenterSigma()">
+                      <span class="glyphicon glyphicon-record"></span>
+                    </button>
                     <button class="btn btn-link btn-sm" ng-click="zoomSigma(true)">
                       <span class="glyphicon glyphicon-plus"></span>
                     </button>
                     <button class="btn btn-link btn-sm" ng-click="zoomSigma(false)">
                       <span class="glyphicon glyphicon-minus"></span>
                     </button>
-                    <button class="btn btn-link btn-sm" ng-click="recenterSigma()">
-                      <span class="glyphicon glyphicon-record"></span>
+                    <button ng-show="!working() && !sigma.isForceAtlas2Running()" class="btn btn-link btn-sm" ng-click="sigma.startForceAtlas2()">
+                      <span class="glyphicon glyphicon-play"></span>
+                    </button>
+                    <button ng-show="!working() && sigma.isForceAtlas2Running()" class="btn btn-link btn-sm" ng-click="sigma.stopForceAtlas2()">
+                      <span class="glyphicon glyphicon-pause"></span>
                     </button>
                   </div>
                 </div>
