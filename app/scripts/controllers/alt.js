@@ -310,6 +310,7 @@ angular.module('wikiDiverApp')
                     }
                     $http.jsonp('http://' + $scope.lang + '.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageLink +'&rvprop=content&rvsection='+ section.index +'&redirects&callback=JSON_CALLBACK')
                     .success(function(linksData){
+                        if (!linksData.query) return notFound(pageLink, updateResolved);
                         // Collect links from the section content
                         var o = linksData.query.pages[Object.keys(linksData.query.pages)[0]].revisions[0]['*'],
                             linksRegex = /\[\[(.*?)\]\]/g,
@@ -334,19 +335,21 @@ angular.module('wikiDiverApp')
 
         // Add a page to the corpus
         function addNode(pageName, level, seed){
+            var pageId = pageName.toLowerCase();
             var existingNode = $scope.nodes.filter(function(e){
-                return e.name === pageName;
+                return e.id === pageId;
             });
             if (existingNode.length)
                 existingNode[0].level = Math.min(level, existingNode[0].level);
             else {
                 $scope.nodes.push({
+                    id: pageId,
                     name: pageName,
                     level: level,
                     seed: !!seed
                 });
                 $scope.sigma.graph.addNode({
-                    id: pageName,
+                    id: pageId,
                     label: pageName,
                     x: Math.random(),
                     y: Math.random(),
@@ -363,7 +366,9 @@ angular.module('wikiDiverApp')
             addNode(source, ind-1);
             addNode(target, ind);
 
-            var edgeId = source + '->' + target;
+            var sourceId = source.toLowerCase(),
+                targetId = target.toLowerCase(),
+                edgeId = sourceId + '->' + targetId;
             if ($scope.edgesIndex[edgeId]) return;
             $('#edges').append('<tr>' +
                 '<td>' + discreetLink(source) + '</td>' +
@@ -371,16 +376,16 @@ angular.module('wikiDiverApp')
                 '<td>' + ind + '</td>' +
             '</tr>');
             $scope.edgesIndex[edgeId] = true;
-            $scope.edges.push({source: source, target: target, index: ind});
+            $scope.edges.push({source: sourceId, target: targetId, index: ind});
 
             $scope.sigma.graph.addEdge({
                 id: edgeId,
-                source: source,
-                target: target,
+                source: sourceId,
+                target: targetId,
                 color: '#ccc'
             });
-            $scope.sigma.graph.nodes(source).size = $scope.sigma.graph.degree(source);
-            $scope.sigma.graph.nodes(target).size = $scope.sigma.graph.degree(target);
+            $scope.sigma.graph.nodes(sourceId).size = $scope.sigma.graph.degree(sourceId);
+            $scope.sigma.graph.nodes(targetId).size = $scope.sigma.graph.degree(targetId);
         }
 
         function depileEdgesQueue(){
@@ -569,6 +574,7 @@ angular.module('wikiDiverApp')
                     if (!$scope.edges.length)
                         $('#warning').append('<div class="col-md-12"><div class="alert alert-danger">Warning: no result found from these seeds.</div></div>');
                     $scope.sigma.stopForceAtlas2();
+                    $scope.stopped = false;
                 }, 1500 + parseInt(Math.sqrt(10 * $scope.nodes.length) * 200));
             }
         );
