@@ -524,7 +524,7 @@ angular.module('wikiDiverApp')
 
             $scope.sigma.graph.nodes().forEach(function(n){
                 gexfDoc.addNode({
-                    id: n.label,
+                    id: n.id,
                     label: n.label,
                     attributes: {
                         level: n.level,
