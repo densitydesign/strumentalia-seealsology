@@ -6,9 +6,10 @@ The tool works currently only for the following versions of Wikipedia: english, 
 Adding other languages requires the identification of the various "See also" sections. Feel free to contribute identifying them and <a href="https://github.com/densitydesign/strumentalia-seealsology/blob/master/app/scripts/controllers/alt.js#L6-L42">proposing new languages via pull requests</a>!</p>
 
 **Try it here: http://tools.medialab.sciences-po.fr/seealsology/**
+
 **or here: http://labs.densitydesign.org/seealsology/**
 
-![Seealsology v2](https://raw.githubusercontent.com/densitydesign/strumentalia-seealsology/master/preview.gif "Seealasology v2")
+![https://raw.githubusercontent.com/densitydesign/strumentalia-seealsology/master/prev](https://raw.githubusercontent.com/densitydesign/strumentalia-seealsology/master/preview.gif "Seealasology v2")
 
 
 ##Usage
