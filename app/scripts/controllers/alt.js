@@ -155,6 +155,7 @@ angular.module('wikiDiverApp')
                 if (!e.data.captor.ctrlKey)
                     return $window.open(link, '_blank');
                 // add seed when ctrl+click ongraph nodes
+                if (e.data.node.seed) return;
                 $scope.query += "\n" + link;
                 e.data.node.seed = true;
                 e.data.node.color = $scope.colors[0];
