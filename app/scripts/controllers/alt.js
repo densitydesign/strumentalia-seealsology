@@ -221,7 +221,7 @@ angular.module('wikiDiverApp')
                 $scope.alert = 'please enter wikipedia pages from the same language (you gave pages from ' + langs.join(', ') + ')';
             else if (!languages[lang]) {
                 $scope.missingLang = true;
-                $scope.alert = lang + ' language is not supported yet, we do not know which section to look for as a "See Also", neither which default stopWords to apply.';
+                $scope.alert = lang + ' language is not supported yet, we do not know which section to look for as a "See also", neither which default stop-words to apply.';
             } else {
                 checkParentsDepth();
                 $scope.lang = langs[0];
