@@ -65,8 +65,6 @@ angular.module('wikiDiverApp')
             $scope.stopped = false;
             $scope.notFound = [];
             $scope.stoppedPages = [];
-            $scope.nodes = [];
-            $scope.edges = [];
             $scope.parentsPending = 0;
             $scope.pending = 0;
             $scope.resolved = 0;
@@ -347,29 +345,21 @@ angular.module('wikiDiverApp')
         // Add a page to the corpus
         function addNode(pageName, level, seed){
             var pageId = pageName.toLowerCase();
-            var existingNode = $scope.nodes.filter(function(e){
-                return e.id === pageId;
+            var existingNode = $scope.sigma.graph.nodes(pageId);
+            if (existingNode){
+                existingNode.level = Math.min(level, existingNode.level);
+                existingNode.seed = existingNode.seed || !!seed;
+                existingNode.color = $scope.colors[existingNode.seed ? 0 : existingNode.level+2];
+            } else $scope.sigma.graph.addNode({
+                id: pageId,
+                label: pageName,
+                x: Math.random(),
+                y: Math.random(),
+                size: 1,
+                level: level,
+                seed: !!seed,
+                color: $scope.colors[seed ? 0 : level+2]
             });
-            if (existingNode.length)
-                existingNode[0].level = Math.min(level, existingNode[0].level);
-            else {
-                $scope.nodes.push({
-                    id: pageId,
-                    name: pageName,
-                    level: level,
-                    seed: !!seed
-                });
-                $scope.sigma.graph.addNode({
-                    id: pageId,
-                    label: pageName,
-                    x: Math.random(),
-                    y: Math.random(),
-                    size: 1,
-                    level: level,
-                    seed: !!seed,
-                    color: $scope.colors[seed ? 0 : level+2]
-                });
-            }
         }
 
         // Add a SeeAlso link between two pages to the corpus
@@ -387,12 +377,11 @@ angular.module('wikiDiverApp')
                 '<td>' + ind + '</td>' +
             '</tr>');
             $scope.edgesIndex[edgeId] = true;
-            $scope.edges.push({source: sourceId, target: targetId, index: ind});
-
             $scope.sigma.graph.addEdge({
                 id: edgeId,
                 source: sourceId,
                 target: targetId,
+                index: ind,
                 color: '#ccc'
             });
             $scope.sigma.graph.nodes(sourceId).size = $scope.sigma.graph.degree(sourceId);
@@ -502,7 +491,10 @@ angular.module('wikiDiverApp')
 
 
         $scope.downloadJSON = function(){
-            var json = angular.toJson({nodes:$scope.nodes,edges:$scope.edges});
+            var json = angular.toJson({
+                nodes: $scope.sigma.graph.nodes(),
+                edges: $scope.sigma.graph.edges()
+            });
             var blob = new Blob([json], {type: 'data:text/json;charset=utf-8' });
             saveAs(blob, 'seealsology-data.json');
         };
@@ -510,7 +502,7 @@ angular.module('wikiDiverApp')
         $scope.downloadCSV = function(){
 
             var csvtxt = 'source\ttarget\tdepth\n';
-            $scope.edges.forEach(function(e){
+            $scope.sigma.graph.edges().forEach(function(e){
                 csvtxt+=(e.source+'\t'+ e.target+'\t'+e.index+'\n');
             });
             var blob = new Blob([csvtxt], { type: 'data:text/csv;charset=utf-8' });
@@ -582,11 +574,11 @@ angular.module('wikiDiverApp')
                 if (!n && n !== o) $timeout(function(){
                     if ($scope.working() || !$scope.sigma)
                         return;
-                    if (!$scope.edges.length)
+                    if (!Object.keys($scope.edgesIndex).length)
                         $('#warning').append('<div class="col-md-12"><div class="alert alert-danger">Warning: no result found from these seeds.</div></div>');
                     $scope.sigma.stopForceAtlas2();
                     $scope.stopped = false;
-                }, 1500 + parseInt(Math.sqrt(10 * $scope.nodes.length) * 200));
+                }, 1500 + parseInt(Math.sqrt(10 * $scope.sigma.graph.nodes().length) * 200));
             }
         );
 
