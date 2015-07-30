@@ -59,7 +59,7 @@ angular.module('wikiDiverApp')
         $scope.colors = ['#de2d26', '#fc9272', '#081d58','#253494','#225ea8','#1d91c0','#41b6c4','#7fcdbb','#c7e9b4','#edf8b1','#ffffd9'];
 
         $scope.init = function(){
-            $('#edges, .stopped ul, .notFound ul').empty();
+            $('#edges, .stopped ul, .notFound ul, #warning').empty();
             $scope.lang = '';
             $scope.alert = false;
             $scope.stopped = false;
@@ -566,6 +566,8 @@ angular.module('wikiDiverApp')
                 if (!n && n !== o) $timeout(function(){
                     if ($scope.working() || !$scope.sigma)
                         return;
+                    if (!$scope.edges.length)
+                        $('#warning').append('<div class="col-md-12"><div class="alert alert-danger">Warning: no result found from these seeds.</div></div>');
                     $scope.sigma.stopForceAtlas2();
                 }, 1500 + parseInt(Math.sqrt(10 * $scope.nodes.length) * 200));
             }

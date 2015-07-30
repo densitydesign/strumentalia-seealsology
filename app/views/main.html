@@ -54,7 +54,6 @@
             </div>
 
             <div class="row" id="crawl-button">
-
                 <div class="col-md-6">
                     <button ng-disabled="!lang || (alert && alert.indexOf('collect') !== 0)" ng-hide="working()" ng-click="startCrawl()" class="btn btn-success btn-lg btn-block">Start Crawling</button>
                     <button ng-show="working()"  class="btn btn-warning btn-lg btn-block" ng-disabled="true">{{resolved}} / {{pending}} pages resolved
@@ -85,9 +84,8 @@
                         ng-hide="cacheLinksEmpty || working()"
                         title="For sanity and performance reasons, results are cached in your browser for {{cacheHours}} hours. Click here to reset cache if you feel like results are not in sync with Wikipedia pages" ng-click="clearCache()" class="btn btn-warning btn-lg btn-block">Clear Cache</button>
                 </div>
-
-
             </div>
+            <div class="row" id="warning"></div>
         </div>
 
 
