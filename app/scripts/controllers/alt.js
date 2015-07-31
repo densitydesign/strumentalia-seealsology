@@ -158,6 +158,7 @@ angular.module('wikiDiverApp')
                 e.data.node.color = $scope.colors[0];
                 $scope.sigma.refresh();
                 $timeout(function(){
+                    $scope.stopped = false;
                     getRelatives(link, 0, true);
                 }, 10);
             });
