@@ -166,8 +166,8 @@ angular.module('wikiDiverApp')
             if ($scope.validate()) {
                 // Scroll down to viz
                 $timeout(function(){
-                    $window.scrollTo(0, document.getElementById('crawl-button').offsetTop - 12);
-                }, 50);
+                    window.scrollTo(0, document.getElementById('crawl-button').offsetTop - 12);
+                }, 250);
 
                 // Start crawl on pages from query
                 $timeout(function(){
