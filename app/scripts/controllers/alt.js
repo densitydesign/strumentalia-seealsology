@@ -57,6 +57,7 @@ angular.module('wikiDiverApp')
         $scope.sigma = undefined;
         $scope.colors = ['#de2d26', '#fc9272', '#081d58','#253494','#225ea8','#1d91c0','#41b6c4','#7fcdbb','#c7e9b4','#edf8b1','#ffffd9'];
 
+        $scope.osSpecialClick = ~$window.navigator.userAgent.toLowerCase().search(/\bmac\s*os/i) ? 'Cmd' : 'Ctrl';
         $scope.init = function(){
             $('#edges, .stopped ul, .notFound ul, #warning').empty();
             $scope.lang = '';
@@ -149,9 +150,9 @@ angular.module('wikiDiverApp')
             $scope.sigma.bind('clickNode', function(e) {
                 var link = wikiLink(e.data.node.label);
                 // Links to wikipages on click graph nodes
-                if (!e.data.captor.ctrlKey)
+                if (!e.data.captor.ctrlKey && !e.data.captor.metaKey)
                     return $window.open(link, '_blank');
-                // add seed when ctrl+click ongraph nodes
+                // add seed when ctrl+click ongraph nodes (and cmd+click for MAC)
                 if (e.data.node.seed) return;
                 $scope.query += "\n" + link;
                 e.data.node.seed = true;
@@ -167,7 +168,7 @@ angular.module('wikiDiverApp')
             if ($scope.validate()) {
                 // Scroll down to viz
                 $timeout(function(){
-                    window.scrollTo(0, document.getElementById('crawl-button').offsetTop - 12);
+                    $window.scrollTo(0, document.getElementById('crawl-button').offsetTop - 12);
                 }, 250);
 
                 // Start crawl on pages from query
