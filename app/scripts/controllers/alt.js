@@ -3,11 +3,10 @@
 angular.module('wikiDiverApp')
     .controller('AltCtrl', function ($scope, $http, $log, $timeout, $interval, $window) {
 
-        // seeAlso section names for a language should be given as lowercase
         var languages = {
           en: {
             name: 'english',
-            seeAlso: ['see also'],
+            seeAlso: ['See also'],
             stopWords: [
               'list of',
               'index of',
@@ -19,7 +18,7 @@ angular.module('wikiDiverApp')
           },
           fr: {
             name: 'french',
-            seeAlso: ['voir aussi', 'Articles connexes'],
+            seeAlso: ['Voir aussi', 'Articles connexes'],
             stopWords: [
               'liste d',
               'index d',
@@ -306,7 +305,9 @@ angular.module('wikiDiverApp')
                 if (!data.parse) return notFound(pageLink, updateResolved);
 
                 var sections = data.parse.sections.filter(function(s){
-                    return languages[$scope.lang].seeAlso.indexOf(s.line.toLowerCase()) !== -1;
+                    return languages[$scope.lang].seeAlso.map(function(s){
+                        return s.toLowerCase();
+                    }).indexOf(s.line.toLowerCase()) !== -1;
                 });
                 if (!sections.length) return notFound(pageLink, updateResolved);
 

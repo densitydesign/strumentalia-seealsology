@@ -3,7 +3,7 @@
 Seealsology is simple tool that allows you to explore in a quick and dirty way the semantic area related to any Wikipedia Page.
 To make it simple, it extracts all the links in the "[See also](https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Layout#See_also_section)" section producing a graph. 
 The tool works currently only for the following versions of Wikipedia: english, french, italian.
-Adding other languages requires the identification of the various "See also" sections. Feel free to contribute identifying them and <a href="https://github.com/densitydesign/strumentalia-seealsology/blob/master/app/scripts/controllers/alt.js#L6-L42">proposing new languages via pull requests</a>!</p>
+Adding other languages requires the identification of the various "See also" sections. Feel free to contribute identifying them and <a href="https://github.com/densitydesign/strumentalia-seealsology/blob/master/app/scripts/controllers/alt.js#L6-L41">proposing new languages via pull requests</a>!</p>
 
 **Try it here: http://tools.medialab.sciences-po.fr/seealsology/**
 
