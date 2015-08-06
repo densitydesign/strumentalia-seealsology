@@ -427,7 +427,7 @@ angular.module('wikiDiverApp')
                 links.forEach(function(d){
                     $scope.edgesQueue.push({
                         source: linkToTitle(page),
-                        target: linkToTitle(d),
+                        target: ~d.indexOf('_') ? linkToTitle(d) : d,
                         level: ind+1
                     });
                     if (ind+1 < $scope.depth)
