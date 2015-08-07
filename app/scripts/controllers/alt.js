@@ -49,7 +49,7 @@ angular.module('wikiDiverApp')
           'Commons:'
         ];
 
-        $scope.query = '';//http://en.wikipedia.org/wiki/God\nhttp://en.wikipedia.org/wiki/Devil\n';
+        $scope.query = '';
         $scope.depth = 2;
         $scope.getParents = true;
         $scope.maxQueries = 10;
@@ -57,7 +57,14 @@ angular.module('wikiDiverApp')
         $scope.sigma = undefined;
         $scope.colors = ['#de2d26', '#fc9272', '#081d58','#253494','#225ea8','#1d91c0','#41b6c4','#7fcdbb','#c7e9b4','#edf8b1','#ffffd9'];
 
-        $scope.osSpecialClick = ~$window.navigator.userAgent.toLowerCase().search(/\bmac\s*os/i) ? 'Cmd' : 'Ctrl';
+        $scope.example = 'http://en.wikipedia.org/wiki/Data_visualization\nhttp://en.wikipedia.org/wiki/Digital_humanities';
+        $scope.setExample = function(){
+            $scope.query = $scope.example;
+            $scope.depth = 3;
+            $scope.getParents = false;
+        };
+
+        $scope.osSpecialClick = (~$window.navigator.userAgent.toLowerCase().search(/\bmac\s*os/i) ? 'Cmd' : 'Ctrl');
         $scope.init = function(){
             $('#edges, .stopped ul, .notFound ul, #warning').empty();
             $scope.lang = '';
@@ -154,7 +161,7 @@ angular.module('wikiDiverApp')
                     return $window.open(link, '_blank');
                 // add seed when ctrl+click ongraph nodes (and cmd+click for MAC)
                 if (e.data.node.seed) return;
-                $scope.query += "\n" + link;
+                $scope.query += '\n' + link;
                 e.data.node.seed = true;
                 e.data.node.color = $scope.colors[0];
                 $scope.sigma.refresh();
@@ -427,7 +434,7 @@ angular.module('wikiDiverApp')
                 links.forEach(function(d){
                     $scope.edgesQueue.push({
                         source: linkToTitle(page),
-                        target: ~d.indexOf('_') ? linkToTitle(d) : d,
+                        target: (~d.indexOf('_') ? linkToTitle(d) : d),
                         level: ind+1
                     });
                     if (ind+1 < $scope.depth)
