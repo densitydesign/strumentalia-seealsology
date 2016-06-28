@@ -37,6 +37,18 @@ angular.module('wikiDiverApp')
               'Portale:',
               'Categoria:'
             ]
+          },
+          de: {
+            name: 'german',
+            seeAlso: ['Siehe auch'],
+            stopWords: [
+              'Kategorie:',
+              'Diskussion:',
+              'Datei:',
+              'Portal:',
+              ' (Begriffsklärung)',
+			  'Liste '
+            ]
           }
         };
         $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).join(', ');
