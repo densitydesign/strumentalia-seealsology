@@ -16,7 +16,7 @@ angular.module('wikiDiverApp')
               'outline of'
             ]
           },
-           de: {
+          de: {
             name: 'german',
             seeAlso: ['Siehe auch'],
             stopWords: [
@@ -48,7 +48,7 @@ angular.module('wikiDiverApp')
               'Categoria:'
             ]
           },
-         ta: {
+          ta: {
             name: 'tamil',
             seeAlso: ['மேலும் பார்க்க', 'மேலும் பார்க்கவும்', 'மேலும் காண்க'],
             stopWords: [
