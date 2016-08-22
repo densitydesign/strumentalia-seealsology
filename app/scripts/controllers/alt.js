@@ -16,16 +16,6 @@ angular.module('wikiDiverApp')
               'outline of'
             ]
           },
-          de: {
-            name: 'german',
-            seeAlso: ['Siehe auch'],
-            stopWords: [
-              'Liste von',
-              'Liste der',
-              'Portal',
-              'Begriffsklärung',
-            ]
-          },
           fr: {
             name: 'french',
             seeAlso: ['Voir aussi', 'Articles connexes'],
@@ -61,12 +51,13 @@ angular.module('wikiDiverApp')
             name: 'german',
             seeAlso: ['Siehe auch'],
             stopWords: [
+              'Liste von',
+              'Liste der',
+              'Portal',
+              'Begriffsklärung',
               'Kategorie:',
               'Diskussion:',
-              'Datei:',
-              'Portal:',
-              ' (Begriffsklärung)',
-			  'Liste '
+              'Datei:'
             ]
           }
         };
