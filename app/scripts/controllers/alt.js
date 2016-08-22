@@ -37,6 +37,15 @@ angular.module('wikiDiverApp')
               'Portale:',
               'Categoria:'
             ]
+          },
+         ta: {
+            name: 'tamil',
+            seeAlso: ['மேலும் பார்க்க', 'மேலும் பார்க்கவும்', 'மேலும் காண்க'],
+            stopWords: [
+              'பட்டியல்',
+              'வலைவாசல்',
+              'பக்கவழிமாற்றுப் பக்கம்',
+            ]
           }
         };
         $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).join(', ');
