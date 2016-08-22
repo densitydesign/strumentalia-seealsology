@@ -37,6 +37,7 @@ angular.module('wikiDiverApp')
               'Portale:',
               'Categoria:'
             ]
+          },
           de: {
             name: 'german',
             seeAlso: ['Siehe auch'],
@@ -58,7 +59,6 @@ angular.module('wikiDiverApp')
               'வலைவாசல்',
               'பக்கவழிமாற்றுப் பக்கம்',
             ]
-          },
           }
         };
         $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).join(', ');
