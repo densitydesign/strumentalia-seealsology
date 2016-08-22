@@ -48,7 +48,8 @@ First install nodeJs, then run from Seealsology's root directory:
 
 ```bash
 npm install
-sudo npm install -g bower
+npm install -g bower
+npm install -g grunt
 bower install
 ```
 
