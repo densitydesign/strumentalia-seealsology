@@ -1,9 +1,9 @@
 {
   "name": "SeeAlsology",
-  "authors": ["Donato Ricci", "Daniele Ciminieri", "Michele Mauri", "Guillaume Plique", "Benjamin Ooghe-tabanou", "Benoit Verjat"],
+  "authors": ["Donato Ricci", "Density Design (Daniele Ciminieri, Michele Mauri)", "Benjamin Ooghe-Tabanou", "Guillaume Plique", "Benoit Verjat"],
   "url": "http://tools.medialab.sciences-po.fr/seealsology/",
   "source": "https://github.com/densitydesign/strumentalia-seealsology",
   "licence": "GPL v3",
-  "visual": "",
-  "description": "Seealsology is simple tool that allows you to explore in a quick and dirty way the semantic area related to any Wikipedia Page. To make it simple, it extracts all the links in the \"See also\" section producing a graph."
+  "visual": "https://raw.githubusercontent.com/densitydesign/strumentalia-seealsology/master/preview.gif",
+  "description": "SeeAlsology is a simple tool to explore in a quick & dirty way the semantic area related to Wikipedia pages by producing a graph of links in the \"See also\" sections."
 }
