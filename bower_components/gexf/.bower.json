@@ -1,0 +1,34 @@
+{
+  "name": "gexf",
+  "main": "build/gexf.min.js",
+  "version": "0.2.3",
+  "homepage": "https://github.com/Yomguithereal/gexf",
+  "authors": [
+    "Yomguithereal"
+  ],
+  "description": "Gexf library for JavaScript.",
+  "keywords": [
+    "gexf",
+    "parser",
+    "writer",
+    "xml",
+    "graph"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "0.2.3",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.2.3",
+    "commit": "b31e6b2c0012517787be20e12bce85c79d96f6dc"
+  },
+  "_source": "https://github.com/Yomguithereal/gexf.git",
+  "_target": "0.2.3",
+  "_originalSource": "gexf"
+}
