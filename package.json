@@ -1,7 +1,11 @@
 {
   "name": "seealsology",
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {
+    "gifsicle": "^3.0.4",
+    "optipng-bin": "^4.0.0",
+    "pngquant-bin": "^3.1.1"
+  },
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-autoprefixer": "^0.7.3",
