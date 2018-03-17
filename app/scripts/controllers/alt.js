@@ -59,6 +59,18 @@ angular.module('wikiDiverApp')
               'வலைவாசல்',
               'பக்கவழிமாற்றுப் பக்கம்',
             ]
+          },
+          et: {
+            name: 'estonian',
+            seeAlso: ['Vaata ka'],
+            stopWords: [
+              'loend',
+              'täpsustus',
+              'Portaal:',
+              'Kategooria:',
+              'Arutelu:',
+              'Fail:'
+            ]
           }
         };
         $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).join(', ');
