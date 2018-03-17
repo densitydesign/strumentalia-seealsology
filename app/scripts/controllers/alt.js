@@ -65,7 +65,7 @@ angular.module('wikiDiverApp')
             seeAlso: ['Vaata ka'],
             stopWords: [
               'loend',
-              'täpsutus',
+              'täpsustus',
               'Portaal:',
               'Kategooria:',
               'Arutelu:',
