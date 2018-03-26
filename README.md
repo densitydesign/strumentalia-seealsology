@@ -12,7 +12,9 @@ Adding other languages requires the identification of the various "See also" sec
 ![https://raw.githubusercontent.com/densitydesign/strumentalia-seealsology/master/prev](https://raw.githubusercontent.com/densitydesign/strumentalia-seealsology/master/preview.gif "Seealasology v2")
 
 
-##Usage
+## Usage
+
+You can take a look at this video tutorial from [TantLab](http://www.tantlab.aau.dk/): https://www.youtube.com/watch?v=Ipb7DiyDt48
 
 Paste the full link to one or more english Wikipedia articles (one per line).
 
@@ -26,7 +28,7 @@ The software will look for each "stop word" in the article title, if there is a 
 
 For sanity and performance reasons, results are cached in the browser's localStorage for 24 hours, allowing you to quickly regenerate a previous crawl or restart a canceled one. Click on the "Clear cache" button to reset cache if you feel like results are not in sync with Wikipedia pages.
 
-##Output
+## Output
 
 While the data collection is performed, results will be displayed as a network graph and printed below as a list. Click on a page's name or node to open the Wikipedia page in another tab.
 On the bottom right panel, errors and stopped pages will be printed.
@@ -42,7 +44,7 @@ Three formats are available:
 It contains two arrays of objects: the first one containing nodes, the second one containing edges. Each node and edge is defined as an object.
 * **GEXF.** The network in [XML-compliant format](http://gexf.net/format/), easily importable in [Gephi](http://gephi.github.io/) or [Manylines](http://tools.medialab.sciences-po.fr/manylines), opensource tools for network visualization.
 
-##Installation
+## Installation
 
 First install nodeJs, then run from Seealsology's root directory:
 
