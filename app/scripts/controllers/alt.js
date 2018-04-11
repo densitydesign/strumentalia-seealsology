@@ -71,6 +71,18 @@ angular.module('wikiDiverApp')
               'Arutelu:',
               'Fail:'
             ]
+          },
+          pt: {
+            name: 'portuguese',
+            seeAlso: ['Ver também'],
+            stopWords: [
+              'lista d',
+              'Categoria:',
+              'Portal:',
+              'desambiguação',
+              'resumo d',
+              'File:'
+            ]
           }
         };
         $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).join(', ');
