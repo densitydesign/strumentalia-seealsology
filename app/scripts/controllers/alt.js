@@ -30,6 +30,14 @@ angular.module('wikiDiverApp')
               'Fichier:'
             ]
           },
+          es: {
+            name: 'spanish',
+            seeAlso: ['Véase también'],
+            stopWords: [
+              'Ayuda:',
+              'Anexo:'
+            ]
+          },
           it: {
             name: 'italian',
             seeAlso: ['Voci correlate', 'Vedi anche'],
