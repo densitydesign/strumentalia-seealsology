@@ -4,6 +4,7 @@
   "dependencies": {},
   "devDependencies": {
     "bower": "1.8.8",
+    "gh-pages": "^2.0.1",
     "gifsicle": "^4.0.1",
     "grunt": "^0.4.5",
     "grunt-autoprefixer": "^0.7.3",
@@ -38,6 +39,7 @@
   },
   "scripts": {
     "build": "grunt build",
+    "deploy": "npm run build && gh-pages -d ./dist",
     "postinstall": "bower install",
     "start": "grunt serve",
     "test": "grunt test"
