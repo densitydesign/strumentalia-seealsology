@@ -106,6 +106,7 @@ angular.module('wikiDiverApp')
         $scope.query = '';
         $scope.depth = 2;
         $scope.getParents = true;
+        $scope.getAllLinks = false;
         $scope.maxQueries = 10;
         $scope.cacheHours = 24;
         $scope.sigma = undefined;
@@ -170,6 +171,10 @@ angular.module('wikiDiverApp')
 
         $scope.toggleParents = function(){
             $scope.getParents = !$scope.getParents;
+        };
+
+        $scope.toggleAllLinks = function(){
+            $scope.getAllLinks = !$scope.getAllLinks;
         };
 
         $scope.startCrawl = function(){

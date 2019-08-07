@@ -48,9 +48,13 @@
                         <span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
                             <input type="number" name="input" ng-model="$parent.depth" min="1" max="5" style="width:100px" required>
                     </div>
-                    <div class="col-md-6 controls">
+                    <div class="col-md-3 controls">
                         <input type="checkbox" name="parents" ng-model="$parent.getParents" checked>
                         <label class="parents-legend" title="Warning: resolving parent links takes a lot more time" ng-click="toggleParents()">Parent links</label>
+                    </div>
+                    <div class="col-md-3 controls">
+                        <input type="checkbox" name="takeall" ng-model="$parent.getAllLinks">
+                        <label class="takeall-legend" title='Overpass the restriction to collect only links from "See Also". Warning: this may result in many issuedrifts (out of scope results)' sections" ng-click="toggleAllLinks()">Take all links</label>
                     </div>
                 </div>
             </div>
