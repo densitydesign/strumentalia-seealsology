@@ -1,3 +1,9 @@
+//TODO:
+// - disable settings while crawling
+// - update sigma
+// - handle redirects (example https://en.wikipedia.org/wiki/Bangladesh_National_Party to https://en.wikipedia.org/wiki/Bangladesh_Nationalist_Party )
+// - button to hide leaves nodes
+
 'use strict';
 
 angular.module('wikiDiverApp')
@@ -99,6 +105,9 @@ angular.module('wikiDiverApp')
           'Wikipedia:',
           'Category:',
           'File:',
+          'Help:',
+          'Talk:',
+          'Template:',
           'wikisource:',
           'Commons:'
         ];
@@ -107,7 +116,7 @@ angular.module('wikiDiverApp')
         $scope.depth = 2;
         $scope.getParents = true;
         $scope.getAllLinks = false;
-        $scope.maxQueries = 10;
+        $scope.maxQueries = 5;
         $scope.cacheHours = 24;
         $scope.sigma = undefined;
         $scope.colors = ['#de2d26', '#fc9272', '#081d58','#253494','#225ea8','#1d91c0','#41b6c4','#7fcdbb','#c7e9b4','#edf8b1','#ffffd9'];
@@ -381,7 +390,7 @@ angular.module('wikiDiverApp')
                     matches = linksRegex.exec(o);
                 }
                 cache(pageLink, links);
-                callback(filterStopWords(links));
+                $timeout(function(){ callback(filterStopWords(links)); }, 10);
             }).error(function(dta, status, hdrs, cfg){
                 if (retries == 0) {
                     $log.error('Could not get content of SeeAlso section from API for', pageLink, 'with status', status, cfg.url, dta, hdrs, cfg);
@@ -400,7 +409,7 @@ angular.module('wikiDiverApp')
             if ($scope.cacheLinks[prefixedPage]) {
                 if ($scope.cacheLinks[prefixedPage][0] === '#NOT-FOUND#')
                     notFound(pageLink, updateResolved);
-                else callback(filterStopWords($scope.cacheLinks[prefixedPage]));
+                else $timeout(function() { callback(filterStopWords($scope.cacheLinks[prefixedPage])); }, 10);
 
             // or find the page's SeeAlso section from API
             } else $http.jsonp('//' + $scope.lang + '.wikipedia.org/w/api.php?action=parse&page=' + pageLink + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK')
@@ -415,7 +424,7 @@ angular.module('wikiDiverApp')
                 if (!sections.length) return notFound(pageLink, updateResolved);
 
                 sections.forEach(function(section, i){
-                    parseAPISection(section, i, pageLink, updateResolved, callback, 3);
+                    parseAPISection(section, i, pageLink, updateResolved, callback);
                 });
             }).error(function(dta, status, hdrs, cfg){
                 if (retries == 0) {
@@ -665,7 +674,7 @@ angular.module('wikiDiverApp')
                 $scope.running++;
                 task.method.apply(null, task.args);
             }
-        }, 200);
+        }, 100);
 
         $scope.clearQueue = function(){
             $scope.stopped = true;
