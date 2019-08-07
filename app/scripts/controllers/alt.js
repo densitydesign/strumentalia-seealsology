@@ -362,6 +362,7 @@ angular.module('wikiDiverApp')
 
         // Parse a page's SeeAlso section from API
         function parseAPISection(section, i, pageLink, updateResolved, callback, retries){
+            if (retries === undefined) retries = 3;
             if (i){
                 if (updateResolved)
                     $scope.pending++;
@@ -387,12 +388,13 @@ angular.module('wikiDiverApp')
                     notFound(pageLink, updateResolved);
                 } else $timeout(function(){
                     parseAPISection(section, i, pageLink, updateResolved, callback, retries-1);
-                }, 100);
+                }, 250);
             });
         }
 
         // Grab a page's SeeAlso links
-        function downloadPageSeeAlsoLinks(pageLink, callback, updateResolved){
+        function downloadPageSeeAlsoLinks(pageLink, callback, updateResolved, retries){
+            if (retries === undefined) retries = 3;
             // Use existing cache
             var prefixedPage = ($scope.getAllLinks ? "ALL-" : "") + pageLink;
             if ($scope.cacheLinks[prefixedPage]) {
@@ -416,8 +418,12 @@ angular.module('wikiDiverApp')
                     parseAPISection(section, i, pageLink, updateResolved, callback, 3);
                 });
             }).error(function(dta, status, hdrs, cfg){
-                $log.error('Could not get sections from API for', pageLink, 'with status', status, cfg.url, dta, hdrs, cfg);
-                notFound(pageLink, updateResolved);
+                if (retries == 0) {
+                    $log.error('Could not get sections from API for', pageLink, 'with status', status, cfg.url, dta, hdrs, cfg);
+                    notFound(pageLink, updateResolved);
+                } else $timeout(function(){
+                    downloadPageSeeAlsoLinks(pageLink, callback, updateResolved, retries-1);
+                }, 250);
             });
         }
 
