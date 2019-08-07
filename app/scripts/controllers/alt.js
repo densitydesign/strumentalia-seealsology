@@ -359,6 +359,37 @@ angular.module('wikiDiverApp')
                 $scope.running--;
         }
 
+        // Parse a page's SeeAlso section from API
+        function parseAPISection(section, i, pageLink, updateResolved, callback, retries){
+            if (i){
+                if (updateResolved)
+                    $scope.pending++;
+                else $scope.parentsPending++;
+            }
+            $http.jsonp('//' + $scope.lang + '.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageLink +'&rvprop=content&rvsection='+ section.index +'&redirects&callback=JSON_CALLBACK')
+            .success(function(linksData){
+                if (!linksData.query) return notFound(pageLink, updateResolved);
+                // Collect links from the section content
+                var o = linksData.query.pages[Object.keys(linksData.query.pages)[0]].revisions[0]['*'],
+                    linksRegex = /\[\[(.*?)\]\]/g,
+                    matches = linksRegex.exec(o),
+                    links = [];
+                while (matches){
+                    links.push(matches[1].split('|')[0]);
+                    matches = linksRegex.exec(o);
+                }
+                cache(pageLink, links);
+                callback(filterStopWords(links));
+            }).error(function(dta, status, hdrs, cfg){
+                if (retries == 0) {
+                    $log.error('Could not get content of SeeAlso section from API for', pageLink, 'with status', status, cfg.url, dta, hdrs, cfg);
+                    notFound(pageLink, updateResolved);
+                } else $timeout(function(){
+                    parseAPISection(section, i, pageLink, updateResolved, callback, retries-1);
+                }, 100);
+            });
+        }
+
         // Grab a page's SeeAlso links
         function downloadPageSeeAlsoLinks(pageLink, callback, updateResolved){
             // Use existing cache
@@ -379,34 +410,11 @@ angular.module('wikiDiverApp')
                 });
                 if (!sections.length) return notFound(pageLink, updateResolved);
 
-                // Grab page's SeeAlso section from API
                 sections.forEach(function(section, i){
-                    if (i){
-                        if (updateResolved)
-                            $scope.pending++;
-                        else $scope.parentsPending++;
-                    }
-                    $http.jsonp('http://' + $scope.lang + '.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&titles='+ pageLink +'&rvprop=content&rvsection='+ section.index +'&redirects&callback=JSON_CALLBACK')
-                    .success(function(linksData){
-                        if (!linksData.query) return notFound(pageLink, updateResolved);
-                        // Collect links from the section content
-                        var o = linksData.query.pages[Object.keys(linksData.query.pages)[0]].revisions[0]['*'],
-                            linksRegex = /\[\[(.*?)\]\]/g,
-                            matches = linksRegex.exec(o),
-                            links = [];
-                        while (matches){
-                            links.push(matches[1].split('|')[0]);
-                            matches = linksRegex.exec(o);
-                        }
-                        cache(pageLink, links);
-                        callback(filterStopWords(links));
-                    }).error(function(e){
-                        $log.error('Could not get content of SeeAlso section from API for', pageLink, e);
-                        notFound(pageLink, updateResolved);
-                    });
+                    parseAPISection(section, i, pageLink, updateResolved, callback, 3);
                 });
-            }).error(function(e){
-                $log.error('Could not get sections from API for', pageLink, e);
+            }).error(function(dta, status, hdrs, cfg){
+                $log.error('Could not get sections from API for', pageLink, 'with status', status, cfg.url, dta, hdrs, cfg);
                 notFound(pageLink, updateResolved);
             });
         }
@@ -540,8 +548,8 @@ angular.module('wikiDiverApp')
                         });
                     }
                 });
-            }).error(function(e){
-                $log.error('Could not get backlinks from API for', page, e);
+            }).error(function(dta, status, hdrs, cfg){
+                $log.error('Could not get backlinks from API for', 'with status', status, cfg.url, dta, hdrs, cfg);
             });
         }
 
