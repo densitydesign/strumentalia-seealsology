@@ -93,7 +93,7 @@ angular.module('wikiDiverApp')
             ]
           }
         };
-        $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).join(', ');
+        $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).sort().join(', ');
 
         $scope.stopWords = [
           'Wikipedia:',
