@@ -111,7 +111,7 @@ angular.module('wikiDiverApp')
         $scope.sigma = undefined;
         $scope.colors = ['#de2d26', '#fc9272', '#081d58','#253494','#225ea8','#1d91c0','#41b6c4','#7fcdbb','#c7e9b4','#edf8b1','#ffffd9'];
 
-        $scope.example = 'http://en.wikipedia.org/wiki/Data_visualization\nhttp://en.wikipedia.org/wiki/Digital_humanities';
+        $scope.example = 'https://en.wikipedia.org/wiki/Data_visualization\nhttps://en.wikipedia.org/wiki/Digital_humanities';
         $scope.setExample = function(){
             $scope.query = $scope.example;
             $scope.depth = 3;
@@ -316,7 +316,7 @@ angular.module('wikiDiverApp')
             return encodeURIComponent(t.replace(/ /g, '_'));
         }
         function wikiLink(t){
-            return 'http://' + $scope.lang + '.wikipedia.org/wiki/' + titleToLink(t);
+            return 'https://' + $scope.lang + '.wikipedia.org/wiki/' + titleToLink(t);
         }
         function discreetLink(t){
             return '<a class="discreet" target="_blank" href="' + wikiLink(t) + '">' + t + '</a>';
@@ -363,7 +363,7 @@ angular.module('wikiDiverApp')
                 else callback(filterStopWords($scope.cacheLinks[pageLink]));
 
             // or find the page's SeeAlso section from API
-            } else $http.jsonp('http://' + $scope.lang + '.wikipedia.org/w/api.php?action=parse&page=' + pageLink + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK')
+            } else $http.jsonp('//' + $scope.lang + '.wikipedia.org/w/api.php?action=parse&page=' + pageLink + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK')
             .success(function(data){
                 if (!data.parse) return notFound(pageLink, updateResolved);
 
@@ -506,7 +506,7 @@ angular.module('wikiDiverApp')
             $scope.doneParents[page] = true;
 
             // Get backlinks to the page from the API
-            $http.jsonp('http://' + $scope.lang + '.wikipedia.org/w/api.php?action=query&bltitle=' + page + '&blnamespace=0&list=backlinks&blredirect&blfilterredir=nonredirects&bllimit=250&format=json&callback=JSON_CALLBACK')
+            $http.jsonp('//' + $scope.lang + '.wikipedia.org/w/api.php?action=query&bltitle=' + page + '&blnamespace=0&list=backlinks&blredirect&blfilterredir=nonredirects&bllimit=250&format=json&callback=JSON_CALLBACK')
             .success(function(data){
                 if(!data.query || !data.query.backlinks) return;
 
