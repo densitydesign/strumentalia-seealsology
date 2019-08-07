@@ -152,12 +152,13 @@ angular.module('wikiDiverApp')
         $scope.cacheLinksEmpty = !Object.keys($scope.cacheLinks).length;
 
         function cache(pageLink, links){
+            var prefixedPage = ($scope.getAllLinks ? "ALL-" : "") + pageLink;
             links = links || [];
-            $scope.cacheLinks[pageLink] = links;
+            $scope.cacheLinks[prefixedPage] = links;
             $scope.cacheLinksEmpty = false;
             try {
-                localStorage.setItem('seeAlsology-' + pageLink, links.join('|'));
-                localStorage.setItem('seeAlsology-update-' + pageLink, Math.floor(new Date() / 1000));
+                localStorage.setItem('seeAlsology-' + prefixedPage, links.join('|'));
+                localStorage.setItem('seeAlsology-update-' + prefixedPage, Math.floor(new Date() / 1000));
             } catch(e){}
         }
 
@@ -393,10 +394,11 @@ angular.module('wikiDiverApp')
         // Grab a page's SeeAlso links
         function downloadPageSeeAlsoLinks(pageLink, callback, updateResolved){
             // Use existing cache
-            if ($scope.cacheLinks[pageLink]) {
-                if ($scope.cacheLinks[pageLink][0] === '#NOT-FOUND#')
+            var prefixedPage = ($scope.getAllLinks ? "ALL-" : "") + pageLink;
+            if ($scope.cacheLinks[prefixedPage]) {
+                if ($scope.cacheLinks[prefixedPage][0] === '#NOT-FOUND#')
                     notFound(pageLink, updateResolved);
-                else callback(filterStopWords($scope.cacheLinks[pageLink]));
+                else callback(filterStopWords($scope.cacheLinks[prefixedPage]));
 
             // or find the page's SeeAlso section from API
             } else $http.jsonp('//' + $scope.lang + '.wikipedia.org/w/api.php?action=parse&page=' + pageLink + '&prop=sections&format=json&redirects&callback=JSON_CALLBACK')
@@ -529,9 +531,10 @@ angular.module('wikiDiverApp')
                     if ($scope.stopped) return;
                     var parentLink = titleToLink(parentPage);
                     $scope.parentsPending++;
-                    if ($scope.cacheLinks[parentLink]){
-                        if ($scope.cacheLinks[parentLink][0] !== '#NOT-FOUND#')
-                            validateParentFromLinks(page, parentLink, ind, $scope.cacheLinks[parentLink]);
+                    var prefixedParent = ($scope.getAllLinks ? "ALL-" : "") + parentLink;
+                    if ($scope.cacheLinks[prefixedParent]){
+                        if ($scope.cacheLinks[prefixedParent][0] !== '#NOT-FOUND#')
+                            validateParentFromLinks(page, parentLink, ind, $scope.cacheLinks[prefixedParent]);
                         if ($scope.parentsPending)
                             $scope.parentsPending--;
                     } else {
