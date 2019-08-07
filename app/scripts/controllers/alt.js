@@ -427,6 +427,35 @@ angular.module('wikiDiverApp')
             });
         }
 
+        // Grab a page's wiki links
+        function downloadPageAllLinks(pageLink, callback, updateResolved, retries){
+            if (retries === undefined) retries = 3;
+            var cachePage = $scope.cacheLinks["ALL-" + pageLink];
+            // Use existing cache
+            if (cachePage) {
+                if (cachePage[0] === '#NOT-FOUND#')
+                    notFound(pageLink, updateResolved);
+                else $timeout(function() { callback(filterStopWords(cachePage)); }, 10);
+
+            // or find the page's SeeAlso section from API
+            } else $http.jsonp('//' + $scope.lang + '.wikipedia.org/w/api.php?action=parse&page=' + pageLink + '&prop=links&format=json&redirects&callback=JSON_CALLBACK')
+            .success(function(data){
+                if (!data.parse) return notFound(pageLink, updateResolved);
+
+                var links = data.parse.links.map(function(l){ return l['*']; });
+                if (!links.length) return notFound(pageLink, updateResolved);
+                cache(pageLink, links);
+                $timeout(function(){ callback(filterStopWords(links)); }, 10);
+            }).error(function(dta, status, hdrs, cfg){
+                if (retries == 0) {
+                    $log.error('Could not get links from API for', pageLink, 'with status', status, cfg.url);
+                    notFound(pageLink, updateResolved);
+                } else $timeout(function(){
+                    downloadPageAllLinks(pageLink, callback, updateResolved, retries-1);
+                }, 250);
+            });
+        }
+
         // Add a page to the corpus
         function addNode(pageName, level, seed){
             var pageId = pageName.toLowerCase();
@@ -505,7 +534,7 @@ angular.module('wikiDiverApp')
 
         // Get a page's sons
         function getSons(page, ind){
-            downloadPageSeeAlsoLinks(page, function(links){
+            ($scope.getAllLinks ? downloadPageAllLinks : downloadPageSeeAlsoLinks)(page, function(links){
                 links.forEach(function(d){
                     $scope.edgesQueue.push({
                         source: linkToTitle(page),
@@ -545,7 +574,7 @@ angular.module('wikiDiverApp')
                             $scope.parentsPending--;
                     } else {
                         $scope.queue[seed ? 'unshift' : 'push']({
-                            method: downloadPageSeeAlsoLinks,
+                            method: $scope.getAllLinks ? downloadPageAllLinks : downloadPageSeeAlsoLinks,
                             type: 'parent',
                             args: [parentLink, function(links){
                                 validateParentFromLinks(page, parentLink, ind, links);
@@ -562,7 +591,7 @@ angular.module('wikiDiverApp')
             });
         }
 
-        // Keep only parent links coming from SeeAlso sections
+        // Keep only parent links present in links extracted from the parent
         function validateParentFromLinks(page, parentLink, ind, links){
             var name = linkToTitle(page),
                 check = name.toLowerCase();
