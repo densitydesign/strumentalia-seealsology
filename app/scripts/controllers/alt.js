@@ -1,5 +1,7 @@
 //TODO:
-// - disable settings while crawling
+// - better stop sigma when recrawl
+// - keep in localstorage current filters
+// - adjust default settings
 // - update sigma
 // - handle redirects (example https://en.wikipedia.org/wiki/Bangladesh_National_Party to https://en.wikipedia.org/wiki/Bangladesh_Nationalist_Party )
 // - button to hide leaves nodes
@@ -180,10 +182,12 @@ angular.module('wikiDiverApp')
         };
 
         $scope.toggleParents = function(){
+            if ($scope.working()) return;
             $scope.getParents = !$scope.getParents;
         };
 
         $scope.toggleAllLinks = function(){
+            if ($scope.working()) return;
             $scope.getAllLinks = !$scope.getAllLinks;
         };
 

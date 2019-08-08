@@ -26,9 +26,9 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="message">Paste your list of wikipedia articles here or <a ng-click="setExample()">try an example</a></label>
-                        <textarea  name="message" id="message" class="form-control" rows="9" cols="25"
-                                   placeholder="ex: https://en.wikipedia.org/wiki/Climate_change"
-                                   ng-model="$parent.query">
+                        <textarea name="message" id="message" class="form-control" rows="9" cols="25"
+                                  placeholder="ex: https://en.wikipedia.org/wiki/Climate_change"
+                                  ng-model="$parent.query" ng-disabled="working()">
                         </textarea>
 
                         <div ng-show="alert" class="alert alert-warning" role="alert">Warning: {{alert}}
@@ -41,20 +41,20 @@
                     <div class="form-group" >
                         <label>Stop words (press enter or separate the works with a comma)</label>
                         <span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
-                        <tags-input placeholder="add a word and press Enter" ng-model="stopWords"></tags-input>
+                        <tags-input ng-disabled="working()" placeholder="add a word and press Enter" ng-model="stopWords"></tags-input>
                     </div>
                     <div class="col-md-4">
                         <label>Distance</label>
                         <span class="help"><i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top"></i></span>
-                            <input type="number" name="input" ng-model="$parent.depth" min="1" max="5" style="width:60px" required>
+                            <input ng-disabled="working()" type="number" name="input" ng-model="$parent.depth" min="1" max="5" style="width:60px" required>
                     </div>
                     <div class="col-md-4 controls">
-                        <input type="checkbox" name="parents" ng-model="$parent.getParents" checked>
-                        <label class="parents-legend" title="Warning: resolving parent links takes a lot more time" ng-click="toggleParents()">Parent links</label>
+                        <input ng-disabled="working()" type="checkbox" name="parents" ng-model="$parent.getParents" checked>
+                        <label ng-class="{disabled: working()}" title="Warning: resolving parent links takes a lot more time" ng-click="toggleParents()">Parent links</label>
                     </div>
                     <div class="col-md-4 controls">
-                        <input type="checkbox" name="takeall" ng-model="$parent.getAllLinks">
-                        <label class="takeall-legend" title='Overpass the restriction to collect only links from "See Also". Warning: this may result in many issuedrifts (out of scope results)' sections" ng-click="toggleAllLinks()">Take all links</label>
+                        <input ng-disabled="working()" type="checkbox" name="takeall" ng-model="$parent.getAllLinks">
+                        <label ng-class="{disabled: working()}" title='Overpass the restriction to collect only links from "See Also". Warning: this may result in many issuedrifts (out of scope results)' sections" ng-click="toggleAllLinks()">Take all links</label>
                     </div>
                 </div>
             </div>

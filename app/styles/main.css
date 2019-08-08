@@ -181,11 +181,17 @@ label{
     font-weight: 600;
 
 }
+textarea {
+  resize: none;
+}
 tags-input .tags .tag-item{
     background: #f1f1f1;
 }
 .controls input, .controls label{
     cursor: pointer;
+}
+.controls label.disabled{
+    cursor: default;
 }
 .col-md-1.clear-cache{
     padding-left: 0px;
