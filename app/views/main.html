@@ -69,7 +69,7 @@
 
 
                 <div class="col-md-3">
-                    <div ng-show="!!resolved">
+                    <div ng-show="started">
                         <button ng-show="working()" class="btn btn-danger btn-lg btn-block" ng-disabled="stopped" ng-click="clearQueue()">Stop &amp; clear queue </button>
                         <div ng-hide="working()">
                             <button class="btn btn-success dropdown-toggle btn-lg btn-block" data-toggle="dropdown">Download
@@ -96,7 +96,7 @@
 
 
         <div class="row">
-            <div ng-show="!!resolved" class="results col-md-12">
+            <div ng-show="started" class="results col-md-12">
                 <div class="sigma-tuto">
                     <span class="left">Click a node to visit it on Wikipedia</span>
                     <span class="right">{{osSpecialClick}}+Click a node to add it to the seeds</span>
@@ -105,19 +105,19 @@
                 <div id="sigma"></div>
                 <div class="sigma-tools">
                   <div class="btn-group-vertical">
-                    <button class="btn btn-link btn-sm" ng-click="recenterSigma()">
+                    <button class="btn btn-link btn-sm" ng-click="resetCamera()">
                       <span class="glyphicon glyphicon-record"></span>
                     </button>
-                    <button class="btn btn-link btn-sm" ng-click="zoomSigma(true)">
+                    <button class="btn btn-link btn-sm" ng-click="zoomIn(true)">
                       <span class="glyphicon glyphicon-plus"></span>
                     </button>
-                    <button class="btn btn-link btn-sm" ng-click="zoomSigma(false)">
+                    <button class="btn btn-link btn-sm" ng-click="zoomOut(false)">
                       <span class="glyphicon glyphicon-minus"></span>
                     </button>
-                    <button ng-show="!working() && !sigma.isForceAtlas2Running()" class="btn btn-link btn-sm" ng-click="sigma.startForceAtlas2()">
+                    <button ng-show="!working() && (!layout || !layout.running)" class="btn btn-link btn-sm" ng-click="startLayout()">
                       <span class="glyphicon glyphicon-play"></span>
                     </button>
-                    <button ng-show="!working() && sigma.isForceAtlas2Running()" class="btn btn-link btn-sm" ng-click="sigma.stopForceAtlas2()">
+                    <button ng-show="!working() && layout && layout.running" class="btn btn-link btn-sm" ng-click="stopLayout()">
                       <span class="glyphicon glyphicon-pause"></span>
                     </button>
                   </div>
@@ -125,7 +125,7 @@
             </div>
         </div>
 
-        <div ng-show="!!resolved" class="row report">
+        <div ng-show="started" class="row report">
 
             <div class="col-md-8 box">
                 <label>Results preview</label>

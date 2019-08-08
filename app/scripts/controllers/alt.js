@@ -1,6 +1,5 @@
 //TODO:
-// - better stop sigma when recrawl
-// - update sigma
+// - replug sigma ctrl click when in sigma2
 // - handle redirects (example https://en.wikipedia.org/wiki/Bangladesh_National_Party to https://en.wikipedia.org/wiki/Bangladesh_Nationalist_Party )
 // - button to hide leaves nodes
 
@@ -118,7 +117,10 @@ angular.module('wikiDiverApp')
         $scope.getAllLinks = false;
         $scope.maxQueries = 5;
         $scope.cacheHours = 24;
+        $scope.network = undefined;
+        $scope.layout = undefined;
         $scope.sigma = undefined;
+        $scope.started = false;
         $scope.colors = ['#de2d26', '#fc9272', '#081d58','#253494','#225ea8','#1d91c0','#41b6c4','#7fcdbb','#c7e9b4','#edf8b1','#ffffd9'];
 
         $scope.example = 'https://en.wikipedia.org/wiki/Data_visualization\nhttps://en.wikipedia.org/wiki/Digital_humanities';
@@ -192,24 +194,104 @@ angular.module('wikiDiverApp')
         $scope.startCrawl = function(){
             $log.debug('starting crawling for', $scope.query.split('\n').length, 'pages');
             $scope.init();
+            $scope.started = true
             $scope.doneParents = {};
             $scope.edgesIndex = {};
 
-            // Clear and init graph
-            if ($scope.sigma) $scope.sigma.kill();
-            $scope.sigma = new sigma({
-                container: 'sigma',
-                settings: {
-                    labelThreshold: 5,
-                    singleHover: true,
-                    minNodeSize: 2
-                }
-            }).configForceAtlas2({
-                adjustSizes: true,
-                scalingRatio: 10,
+            // Validate inputs before starting process
+            if ($scope.validate()) {
+
+                $scope.stopLayout();
+                if ($scope.sigma) $scope.sigma.kill();
+                $scope.network = new Graph({type: 'directed', allowSelfLoops: false});
+
+                // Scroll down to viz
+                $timeout(function(){
+                    $scope.initSigma();
+                    $window.scrollTo(0, document.getElementById('crawl-button').offsetTop - 12);
+                }, 750);
+
+                // Start crawl on pages from query
+                $timeout(function(){
+                    $scope.validPages.forEach(function(e){
+                        getRelatives(e, 0, true);
+                    });
+                }, 200);
+            }
+
+
+        };
+
+
+        $scope.stopLayout = function(){
+            if ($scope.layout) $scope.layout.kill()
+        }
+
+        $scope.startLayout = function(){
+            $scope.stopLayout();
+            $scope.layout = new ForceAtlas2Layout($scope.network, {
+              settings: {
+                barnesHutOptimize: $scope.network.order >= 1000,
                 strongGravityMode: true,
                 gravity: 0.1,
+                scalingRatio: 10,
                 slowDown: 15
+              }
+            }).start();
+        }
+
+        // These functions will be initialized at Sigma creation
+        $scope.zoomIn = function(){}
+        $scope.zoomOut = function(){}
+        $scope.resetCamera = function(){}
+
+        $scope.$on("$destroy", function(){
+            $scope.layout.kill()
+        })
+
+        $scope.initSigma = function(){
+
+            var container = document.getElementById('sigma');
+            if (!container) return;
+
+            $scope.sigma = new Sigma.WebGLRenderer($scope.network, container);
+
+            // Zoom buttons
+            $scope.zoomIn = function(){
+              var camera = $scope.sigma.getCamera()
+              camera.animatedZoom()
+            }
+
+            $scope.zoomOut = function(){
+              var camera = $scope.sigma.getCamera()
+              camera.animatedUnzoom()
+            }
+
+            $scope.resetCamera = function(){
+              var camera = $scope.sigma.getCamera()
+              camera.animate({ratio: 1, x: 0.5, y: 0.5})
+            }
+
+            // Links to wikipages on click graph nodes
+            $scope.sigma.on('clickNode', function(e, a, b, c, d){
+              console.log("CLICK", e)
+              $timeout(function(){
+                var link = wikiLink($scope.network.getNodeAttribute(e.node, 'label'));
+                return $window.open(link, '_blank');
+              }, 10);
+            });
+
+            // add seed when double click ongraph nodes
+            $scope.sigma.on('ctrlClickNode', function(e){
+              if ($scope.network.getNodeAttribute(e.node, 'seed')) return;
+              var link = wikiLink($scope.network.getNodeAttribute(e.node, 'label'));
+              $scope.query += '\n' + link;
+              $scope.network.setNodeAttribute(e.node, 'seed', true)
+              $scope.network.setNodeAttribute(e.node, 'color', $scope.colors[0])
+              $timeout(function(){
+                $scope.stopped = false;
+                getRelatives(link, 0, true);
+              }, 10);
             });
 
             // Draw sigma legend
@@ -224,38 +306,7 @@ angular.module('wikiDiverApp')
                 );
               });
 
-
-            $scope.sigma.bind('clickNode', function(e) {
-                var link = wikiLink(e.data.node.label);
-                // Links to wikipages on click graph nodes
-                if (!e.data.captor.ctrlKey && !e.data.captor.metaKey)
-                    return $window.open(link, '_blank');
-                // add seed when ctrl+click ongraph nodes (and cmd+click for MAC)
-                if (e.data.node.seed) return;
-                $scope.query += '\n' + link;
-                e.data.node.seed = true;
-                e.data.node.color = $scope.colors[0];
-                $scope.sigma.refresh();
-                $timeout(function(){
-                    $scope.stopped = false;
-                    getRelatives(link, 0, true);
-                }, 10);
-            });
-
-            // Validate inputs before starting process
-            if ($scope.validate()) {
-                // Scroll down to viz
-                $timeout(function(){
-                    $window.scrollTo(0, document.getElementById('crawl-button').offsetTop - 12);
-                }, 250);
-
-                // Start crawl on pages from query
-                $timeout(function(){
-                    $scope.validPages.forEach(function(e){
-                        getRelatives(e, 0, true);
-                    });
-                }, 10);
-            }
+            $timeout(function() { $scope.startLayout(true); }, 250);
         };
 
         $scope.validate = function(){
@@ -468,59 +519,84 @@ angular.module('wikiDiverApp')
         }
 
         // Add a page to the corpus
-        function addNode(pageName, level, seed){
+        function addNode(pageName, level, seed, parentNode){
             var pageId = pageName.toLowerCase();
-            var existingNode = $scope.sigma.graph.nodes(pageId);
+            if (parentNode) parentNode = parentNode.toLowerCase();
+            var existingNode = $scope.network.hasNode(pageId),
+                existingParent = $scope.network.hasNode(parentNode),
+                isSeed = (existingNode && $scope.network.getNodeAttribute(pageId, 'seed')) || !!seed;
             if (existingNode){
-                existingNode.level = Math.min(level, existingNode.level);
-                existingNode.seed = existingNode.seed || !!seed;
-                existingNode.color = $scope.colors[existingNode.seed ? 0 : existingNode.level+2];
-            } else $scope.sigma.graph.addNode({
-                id: pageId,
+                $scope.network.setNodeAttribute(pageId, 'level', Math.min(level, $scope.network.getNodeAttribute(pageId, 'level')));
+                $scope.network.setNodeAttribute(pageId, 'seed', isSeed);
+                $scope.network.setNodeAttribute(pageId, 'color', $scope.colors[isSeed ? 0 : $scope.network.getNodeAttribute(pageId, 'level')+2]);
+            } else {
+              var x, y, distance;
+              if (!$scope.sigma) {
+                x = Math.random();
+                y = Math.random();
+              } else {
+                var x1 = $scope.sigma.nodeExtent.x[0],
+                    x2 = $scope.sigma.nodeExtent.x[1],
+                    y1 = $scope.sigma.nodeExtent.y[0],
+                    y2 = $scope.sigma.nodeExtent.y[1],
+                    extentX = x2 - x1 || 1,
+                    extentY = y2 - y1 || 1,
+                    extent = Math.max(extentX, extentY);
+                if (existingParent && $scope.network.order > 2) {
+                  x = $scope.network.getNodeAttribute(parentNode, 'x');
+                  y = $scope.network.getNodeAttribute(parentNode, 'y');
+                  distance = 0.1;
+                } else {
+                  x = x1 + extentX / 2;
+                  y = y1 + extentY / 2;
+                  distance = seed ? 0.1 : 0.75;
+                }
+                x = x + (Math.random() - 0.5) * extent * distance;
+                y = y + (Math.random() - 0.5) * extent * distance;
+              }
+              $scope.network.addNode(pageId, {
                 label: pageName,
-                x: Math.random(),
-                y: Math.random(),
+                x: x,
+                y: y,
                 size: 1,
                 level: level,
                 seed: !!seed,
                 color: $scope.colors[seed ? 0 : level+2]
-            });
+              });
+            }
+            if ($scope.network.order == 1000)
+              $scope.startLayout();
         }
 
         // Add a SeeAlso link between two pages to the corpus
         function addEdge(source, target, ind){
-            addNode(source, ind-1);
-            addNode(target, ind);
+            addNode(source, ind-1, false, target);
+            addNode(target, ind, false, source);
 
             var sourceId = source.toLowerCase(),
                 targetId = target.toLowerCase(),
                 edgeId = sourceId + '->' + targetId;
-            if ($scope.edgesIndex[edgeId]) return;
+            if (sourceId === targetId || $scope.edgesIndex[edgeId]) return;
             $('#edges').append('<tr>' +
                 '<td>' + discreetLink(source) + '</td>' +
                 '<td>' + discreetLink(target) + '</td>' +
                 '<td>' + ind + '</td>' +
             '</tr>');
             $scope.edgesIndex[edgeId] = true;
-            $scope.sigma.graph.addEdge({
-                id: edgeId,
-                source: sourceId,
-                target: targetId,
+            $scope.network.addEdgeWithKey(edgeId, sourceId, targetId, {
                 index: ind,
                 color: '#ccc'
             });
-            $scope.sigma.graph.nodes(sourceId).size = $scope.sigma.graph.degree(sourceId);
-            $scope.sigma.graph.nodes(targetId).size = $scope.sigma.graph.degree(targetId);
+            $scope.network.setNodeAttribute(sourceId, 'size', Math.min(3, Math.sqrt($scope.network.degree(sourceId))));
+            $scope.network.setNodeAttribute(targetId, 'size', Math.min(3, Math.sqrt($scope.network.degree(targetId))));
         }
 
         function depileEdgesQueue(){
             if (!$scope.edgesQueue.length) return;
-            $scope.sigma.killForceAtlas2();
             $scope.edgesQueue.forEach(function(e){
                 addEdge(e.source, e.target, e.level);
             });
             $scope.edgesQueue = [];
-            $scope.sigma.startForceAtlas2();
         }
 
         // Add a page to the corpus and find its parents and sons
@@ -617,56 +693,42 @@ angular.module('wikiDiverApp')
 
 
         $scope.downloadJSON = function(){
-            var json = angular.toJson({
-                nodes: $scope.sigma.graph.nodes(),
-                edges: $scope.sigma.graph.edges()
-            });
+            var json = angular.toJson($scope.network.export());
             var blob = new Blob([json], {type: 'data:text/json;charset=utf-8' });
             saveAs(blob, 'seealsology-data.json');
         };
 
         $scope.downloadCSV = function(){
-
             var csvtxt = 'source\ttarget\tdepth\n';
-            $scope.sigma.graph.edges().forEach(function(e){
-                csvtxt+=(e.source+'\t'+ e.target+'\t'+e.index+'\n');
+            $scope.network.forEachEdge(function(e, attrs, source, target){
+                csvtxt += (source + '\t' + target + '\t' + attrs.index + '\n');
             });
             var blob = new Blob([csvtxt], { type: 'data:text/csv;charset=utf-8' });
             saveAs(blob, 'seealsology-data.tsv');
         };
 
-        $scope.downloadGEXF = function(){
-            var gexfDoc = gexf.create({defaultEdgeType: 'directed'});
-
-            gexfDoc.addNodeAttribute({id: 'level', title: 'Level', type: 'integer'});
-            gexfDoc.addNodeAttribute({id: 'seed', title: 'Seed', type: 'boolean'});
-
-            $scope.sigma.graph.nodes().forEach(function(n){
-                gexfDoc.addNode({
-                    id: n.id,
-                    label: n.label,
-                    attributes: {
-                        level: n.level,
-                        seed: n.seed
-                    },
+        $scope.downloadGEXF = function() {
+          if ($scope.network) {
+            var blob = new Blob(
+              [gexf.write($scope.network, {
+                formatNode: function(key, attributes) {
+                  return {
+                    label: attributes.label,
+                    attributes: ['level', 'seed'],
                     viz: {
-                        color: n.color,
-                        size: $scope.sigma.graph.degree(n.label),
-                        position: {
-                            x: n['read_cam0:x'],
-                            y: -n['read_cam0:y']
-                        }
+                      color: attributes.color,
+                      size: attributes.size,
+                      x: attributes.x,
+                      y: attributes.y
                     }
-                });
-            });
-
-            $scope.sigma.graph.edges().forEach(function(e){
-                gexfDoc.addEdge({source: e.source, target: e.target});
-            });
-
-            var blob = new Blob([gexfDoc.serialize()], { type: 'data:application/xml+gexf;charset=utf-8' });
-            saveAs(blob, 'seealsology-data.gexf');
-        };
+                  };
+                }
+              })],
+              {'type':'text/gexf+xml;charset=utf-8'}
+            );
+            saveAs(blob, 'seealsology-data.gexf', true);
+          }
+        }
 
         // Empty queue when free slots
         $interval(function(){
@@ -698,33 +760,16 @@ angular.module('wikiDiverApp')
             $scope.working,
             function(n, o){
                 if (!n && n !== o) $timeout(function(){
-                    if ($scope.working() || !$scope.sigma)
+                    if ($scope.working() || !$scope.layout)
                         return;
                     if (!Object.keys($scope.edgesIndex).length)
                         $('#warning').append('<div class="col-md-12"><div class="alert alert-danger">Warning: no result found from these seeds.</div></div>');
-                    $scope.sigma.stopForceAtlas2();
+                    $scope.startLayout();
+                    $timeout($scope.stopLayout, 2500 + parseInt(Math.sqrt(10 * $scope.network.order) * 200));
                     $scope.stopped = false;
-                }, 1500 + parseInt(Math.sqrt(10 * $scope.sigma.graph.nodes().length) * 200));
+                }, 500);
             }
         );
-
-        // Zoom buttons
-        $scope.zoomSigma = function(positiveZoom){
-            var cam = $scope.sigma.cameras[0];
-            sigma.misc.animation.camera(
-                cam,
-                { ratio: cam.ratio * (positiveZoom ? 1/1.5 : 1.5) },
-                { duration: 150 }
-            );
-        };
-        $scope.recenterSigma = function(){
-            sigma.misc.animation.camera(
-                $scope.sigma.cameras[0],
-                {x: 0, y: 0, angle: 0, ratio: 1},
-                { duration: 150 }
-            );
-        };
-
 
         // Debug
         //$interval(function(){ $log.debug('Queue:', $scope.queue.length, 'Running:', $scope.running, 'Resolved:', $scope.resolved, 'Pending:', $scope.pending, 'ParentsPending:', $scope.parentsPending); }, 1000);

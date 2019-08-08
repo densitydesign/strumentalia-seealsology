@@ -36,3 +36,5 @@ bower_components
 
 # dist folder
 dist
+
+app/scripts/sigma-graphology.js
