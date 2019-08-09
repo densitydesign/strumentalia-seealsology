@@ -1,5 +1,4 @@
 //TODO:
-// - replug sigma ctrl click when in sigma2
 // - handle redirects (example https://en.wikipedia.org/wiki/Bangladesh_National_Party to https://en.wikipedia.org/wiki/Bangladesh_Nationalist_Party )
 // - button to hide leaves nodes
 
@@ -277,18 +276,14 @@ angular.module('wikiDiverApp')
               console.log("CLICK", e)
               $timeout(function(){
                 var link = wikiLink($scope.network.getNodeAttribute(e.node, 'label'));
-                return $window.open(link, '_blank');
-              }, 10);
-            });
-
-            // add seed when double click ongraph nodes
-            $scope.sigma.on('ctrlClickNode', function(e){
-              if ($scope.network.getNodeAttribute(e.node, 'seed')) return;
-              var link = wikiLink($scope.network.getNodeAttribute(e.node, 'label'));
-              $scope.query += '\n' + link;
-              $scope.network.setNodeAttribute(e.node, 'seed', true)
-              $scope.network.setNodeAttribute(e.node, 'color', $scope.colors[0])
-              $timeout(function(){
+                if (!e.captor.ctrlKey && !e.captor.metaKey)
+                    return $window.open(link, '_blank');
+                // add seed when double click ongraph nodes
+                if ($scope.network.getNodeAttribute(e.node, 'seed')) return;
+                var link = wikiLink($scope.network.getNodeAttribute(e.node, 'label'));
+                $scope.query += '\n' + link;
+                $scope.network.setNodeAttribute(e.node, 'seed', true)
+                $scope.network.setNodeAttribute(e.node, 'color', $scope.colors[0])
                 $scope.stopped = false;
                 getRelatives(link, 0, true);
               }, 10);
