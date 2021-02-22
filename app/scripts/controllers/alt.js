@@ -96,6 +96,17 @@ angular.module('wikiDiverApp')
               'File:'
             ]
           },
+          pl: {
+            name: 'polish',
+            seeAlso: ['Zobacz też'],
+            stopWords: [
+                'przypisy',
+                'kategoria',
+                'dyskusja',
+                'linki zewnętrzne',
+                'pomoc'
+            ]
+          },
           da: {
             name: 'danish',
             seeAlso: ['Se også'],
