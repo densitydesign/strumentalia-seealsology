@@ -95,7 +95,19 @@ angular.module('wikiDiverApp')
               'resumo d',
               'File:'
             ]
-          }
+          },
+          pl: {
+            name: 'polish',
+            seeAlso: ['Zobacz też'],
+            stopWords: [
+                'przypisy',
+                'kategoria',
+                'dyskusja',
+                'linki zewnętrzne',
+                'pomoc'
+            ]
+        }
+
         };
         $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).sort().join(', ');
 
