@@ -106,8 +106,17 @@ angular.module('wikiDiverApp')
                 'linki zewnętrzne',
                 'pomoc'
             ]
-        }
-
+          },
+          da: {
+            name: 'danish',
+            seeAlso: ['Se også'],
+            stopWords: [
+              'liste af',
+              'Kategori:',
+              'Portal:',
+              'Fil:'
+            ]
+          }
         };
         $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).sort().join(', ');
 
