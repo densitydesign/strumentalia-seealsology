@@ -274,7 +274,11 @@ angular.module('wikiDiverApp')
             var container = document.getElementById('sigma');
             if (!container) return;
 
-            $scope.sigma = new Sigma.WebGLRenderer($scope.network, container);
+            $scope.sigma = new Sigma.Sigma($scope.network, container, {
+              labelRenderedSizeThreshold: -Infinity,
+              labelDensity: 0.1,
+              labelGridCellSize: 150
+            })
 
             // Zoom buttons
             $scope.zoomIn = function(){

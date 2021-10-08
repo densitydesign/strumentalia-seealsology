@@ -2,13 +2,13 @@
   "name": "seealsology",
   "version": "0.0.0",
   "dependencies": {
-    "graphology": "0.14.1",
-    "graphology-components": "0.1.0",
-    "graphology-gexf": "0.5.0",
+    "graphology": "0.21.0",
+    "graphology-components": "1.1.0",
+    "graphology-gexf": "0.8.0",
     "graphology-hits": "0.1.0",
-    "graphology-layout": "0.1.0",
-    "graphology-layout-forceatlas2": "0.3.1",
-    "sigma": "2.0.0-alpha23"
+    "graphology-layout": "0.4.0",
+    "graphology-layout-forceatlas2": "0.6.1",
+    "sigma": "2.0.0-beta12"
   },
   "devDependencies": {
     "bower": "1.8.8",
