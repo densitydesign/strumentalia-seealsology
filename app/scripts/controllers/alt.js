@@ -261,6 +261,8 @@ angular.module('wikiDiverApp')
         }
 
         // These functions will be initialized at Sigma creation
+        $scope.hideLeaves = false
+        $scope.toggleLeaves = function(){}
         $scope.zoomIn = function(){}
         $scope.zoomOut = function(){}
         $scope.resetCamera = function(){}
@@ -280,6 +282,13 @@ angular.module('wikiDiverApp')
               labelGridCellSize: 150
             })
 
+            $scope.toggleLeaves = function(){
+              $scope.hideLeaves = !$scope.hideLeaves
+              $scope.network.nodes().forEach(function(n){
+                $scope.network.setNodeAttribute(n, 'hidden', $scope.hideLeaves && $scope.network.degree(n) < 2)
+              })
+            }
+
             // Zoom buttons
             $scope.zoomIn = function(){
               var camera = $scope.sigma.getCamera()
@@ -298,7 +307,6 @@ angular.module('wikiDiverApp')
 
             // Links to wikipages on click graph nodes
             $scope.sigma.on('clickNode', function(e, a, b, c, d){
-              console.log("CLICK", e)
               $timeout(function(){
                 var link = wikiLink($scope.network.getNodeAttribute(e.node, 'label'));
                 if (!e.captor.ctrlKey && !e.captor.metaKey)

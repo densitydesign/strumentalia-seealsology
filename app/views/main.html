@@ -105,20 +105,26 @@
                 <div id="sigma"></div>
                 <div class="sigma-tools">
                   <div class="btn-group-vertical">
-                    <button class="btn btn-link btn-sm" ng-click="resetCamera()">
+                    <button class="btn btn-link btn-sm" ng-click="resetCamera()" title="Reset camera">
                       <span class="glyphicon glyphicon-record"></span>
                     </button>
-                    <button class="btn btn-link btn-sm" ng-click="zoomIn(true)">
+                    <button class="btn btn-link btn-sm" ng-click="zoomIn(true)" title="Zoom in">
                       <span class="glyphicon glyphicon-plus"></span>
                     </button>
-                    <button class="btn btn-link btn-sm" ng-click="zoomOut(false)">
+                    <button class="btn btn-link btn-sm" ng-click="zoomOut(false)" title="Zoom out">
                       <span class="glyphicon glyphicon-minus"></span>
                     </button>
-                    <button ng-show="!working() && (!layout || !layout.running)" class="btn btn-link btn-sm" ng-click="startLayout()">
+                    <button ng-show="!working() && (!layout || !layout.running)" class="btn btn-link btn-sm" ng-click="startLayout()" title="Start layout">
                       <span class="glyphicon glyphicon-play"></span>
                     </button>
-                    <button ng-show="!working() && layout && layout.running" class="btn btn-link btn-sm" ng-click="stopLayout()">
+                    <button ng-show="!working() && layout && layout.running" class="btn btn-link btn-sm" ng-click="stopLayout()" title="Stop layout">
                       <span class="glyphicon glyphicon-pause"></span>
+                    </button>
+                    <button ng-show="hideLeaves" class="btn btn-link btn-sm" ng-click="toggleLeaves()" title="Show leaves">
+                      <span class="glyphicon glyphicon-eye-open"></span>
+                    </button>
+                    <button ng-show="!hideLeaves" class="btn btn-link btn-sm" ng-click="toggleLeaves()" title="Hide leaves">
+                      <span class="glyphicon glyphicon-eye-close"></span>
                     </button>
                   </div>
                 </div>
