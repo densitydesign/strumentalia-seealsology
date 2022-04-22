@@ -47,7 +47,7 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "build": "grunt build",
+    "build": "grunt build --force",
     "deploy": "npm run build && gh-pages -d ./dist",
     "postinstall": "webpack --colors --progress && bower install",
     "start": "grunt serve",
