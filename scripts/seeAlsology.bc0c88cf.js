@@ -149,6 +149,7 @@ angular.module('wikiDiverApp')
 
         $scope.query = '';
         $scope.depth = 2;
+        $scope.fullscreen = false;
         $scope.getParents = false;
         $scope.getAllLinks = false;
         $scope.maxQueries = 5;
@@ -279,6 +280,7 @@ angular.module('wikiDiverApp')
         // These functions will be initialized at Sigma creation
         $scope.hideLeaves = false
         $scope.toggleLeaves = function(){}
+        $scope.toggleFullscreen = function(){}
         $scope.zoomIn = function(){}
         $scope.zoomOut = function(){}
         $scope.resetCamera = function(){}
@@ -319,6 +321,23 @@ angular.module('wikiDiverApp')
             $scope.resetCamera = function(){
               var camera = $scope.sigma.getCamera()
               camera.animate({ratio: 1, x: 0.5, y: 0.5})
+            }
+
+            $scope.toggleFullscreen = function(){
+              var div = document.getElementById('network'),
+                button = document.getElementById('fullscreen');
+              if (!$scope.fullscreen) {
+                screenfull.request(div);
+                div.style.height = '100%';
+                container.style.height = window.outerHeight + "px"
+                button.setAttribute('title', 'exit fullscreen');
+              } else {
+                screenfull.exit();
+                div.style.height = '';
+                container.style.height = '500px';
+                button.setAttribute('title', 'enter fullscreen');
+              }
+              $scope.fullscreen = !$scope.fullscreen
             }
 
             // Links to wikipages on click graph nodes
