@@ -15,7 +15,7 @@
     "bower": "1.8.8",
     "gh-pages": "^2.0.1",
     "gifsicle": "^4.0.1",
-    "grunt": "^0.4.5",
+    "grunt": "^1.5.2",
     "grunt-autoprefixer": "^0.7.3",
     "grunt-cli": "^1.2.0",
     "grunt-concurrent": "^0.5.0",
