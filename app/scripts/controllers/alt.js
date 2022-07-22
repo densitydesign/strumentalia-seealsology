@@ -369,7 +369,7 @@ angular.module('wikiDiverApp')
                 return false;
             }
 
-            var regex = /https?:\/\/([a-z]+)\.wikipedia\.org\/wiki\/.+/i,
+            var regex = /https?:\/\/([a-z]+)\.wikipedia\.org\/(wiki|[a-z\-]+)\/.+/i,
                 testUrl = null,
                 listOfPages = $scope.query.split('\n'),
                 lang = '',
@@ -651,7 +651,7 @@ angular.module('wikiDiverApp')
             if ($scope.stopped) return;
             $scope.pending++;
             var link = '',
-                rgx = /wiki\/(.+?)(?:#.*)?$/g;
+                rgx = /(wiki|[a-z\-]+)\/(.+?)(?:#.*)?$/g;
             if (seed){
                 link = rgx.exec(page)[1];
                 addNode(linkToTitle(link), 0, seed);
