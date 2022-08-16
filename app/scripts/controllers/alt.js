@@ -651,7 +651,7 @@ angular.module('wikiDiverApp')
             if ($scope.stopped) return;
             $scope.pending++;
             var link = '',
-                rgx = /(wiki|[a-z\-]+)\/(.+?)(?:#.*)?$/g;
+                rgx = /(?:wiki|[a-z\-]+)\/([^\/]+?)(?:#.*)?$/g;
             if (seed){
                 link = rgx.exec(page)[1];
                 addNode(linkToTitle(link), 0, seed);
