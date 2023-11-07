@@ -5,9 +5,7 @@ To make it simple, it extracts all the links in the "[See also](https://en.wikip
 The tool works currently only for the following versions of Wikipedia: english, french, italian.
 Adding other languages requires the identification of the various "See also" sections. Feel free to contribute identifying them and <a href="https://github.com/densitydesign/strumentalia-seealsology/blob/master/app/scripts/controllers/alt.js#L6-L41">proposing new languages via pull requests</a>!</p>
 
-**Try it here: http://tools.medialab.sciences-po.fr/seealsology/**
-
-**or here: http://labs.densitydesign.org/seealsology/**
+**Try it here: https://densitydesign.github.io/strumentalia-seealsology/**
 
 ![https://raw.githubusercontent.com/densitydesign/strumentalia-seealsology/master/prev](https://raw.githubusercontent.com/densitydesign/strumentalia-seealsology/master/preview.gif "Seealasology v2")
 
