@@ -482,12 +482,18 @@ angular.module('wikiDiverApp')
                 if (!linksData.query) return notFound(pageLink, updateResolved);
                 // Collect links from the section content
                 var o = linksData.query.pages[Object.keys(linksData.query.pages)[0]].revisions[0]['*'],
-                    linksRegex = /\[\[(.*?)\]\]/g,
-                    matches = linksRegex.exec(o),
+                    linksRegex1 = /\[\[(.*?)\]\]/g,
+                    linksRegex2 = /\{\{Annotated link\|(.*?)\}\}/g,
+                    matches1 = linksRegex1.exec(o),
+                    matches2 = linksRegex2.exec(o),
                     links = [];
-                while (matches){
-                    links.push(matches[1].split('|')[0]);
-                    matches = linksRegex.exec(o);
+                while (matches1){
+                    links.push(matches1[1].split('|')[0]);
+                    matches1 = linksRegex1.exec(o);
+                }
+                while (matches2){
+                    links.push(matches2[1].split('|')[0]);
+                    matches2 = linksRegex2.exec(o);
                 }
                 cache(pageLink, links);
                 $timeout(function(){ callback(filterStopWords(links)); }, 10);
