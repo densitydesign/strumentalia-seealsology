@@ -124,7 +124,7 @@ angular.module('wikiDiverApp')
               'Ajuda:',
               'Annex:',
             ]
-          },
+          }
         };
         $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).sort().join(', ');
 
