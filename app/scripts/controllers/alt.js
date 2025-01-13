@@ -116,6 +116,14 @@ angular.module('wikiDiverApp')
               'Portal:',
               'Fil:'
             ]
+          },
+          ca: {
+            name: 'catalan',
+            seeAlso: ['Vegeu també'],
+            stopWords: [
+              'Ajuda:',
+              'Annex:',
+            ]
           }
         };
         $scope.supportedLanguages = Object.keys(languages).map(function(l){ return languages[l].name; }).sort().join(', ');
