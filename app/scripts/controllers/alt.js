@@ -491,7 +491,7 @@ angular.module('wikiDiverApp')
                 // Collect links from the section content
                 var o = linksData.query.pages[Object.keys(linksData.query.pages)[0]].revisions[0]['*'],
                     linksRegex1 = /\[\[(.*?)\]\]/g,
-                    linksRegex2 = /\{\{Annotated link\|(.*?)\}\}/g,
+                    linksRegex2 = /\{\{\s*(?:annotated link|anli?|section link|sec link|slink|§)\s*\|\s*(.*?)\s*\}\}/gi,
                     matches1 = linksRegex1.exec(o),
                     matches2 = linksRegex2.exec(o),
                     links = [];
