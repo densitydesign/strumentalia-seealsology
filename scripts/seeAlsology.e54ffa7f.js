@@ -791,7 +791,10 @@ angular.module('wikiDiverApp')
                 formatNode: function(key, attributes) {
                   return {
                     label: attributes.label,
-                    attributes: ['level', 'seed'],
+                    attributes: {
+                      'level': attributes.level,
+                      'seed': attributes.seed
+                    },
                     viz: {
                       color: attributes.color,
                       size: attributes.size,
